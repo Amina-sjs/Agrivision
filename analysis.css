@@ -1,0 +1,541 @@
+/* Стили для страницы анализа */
+
+.analysis-page {
+    padding-top: 120px;
+    background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+    min-height: calc(100vh - 80px);
+}
+
+.analysis-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.analysis-header h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    color: var(--primary-dark);
+}
+
+.analysis-subtitle {
+    font-size: 1.3rem;
+    color: #666;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Секция загрузки */
+.upload-section {
+    max-width: 800px;
+    margin: 0 auto 60px;
+}
+
+.upload-area {
+    border: 3px dashed var(--primary);
+    border-radius: 20px;
+    padding: 80px 40px;
+    background: rgba(46, 125, 50, 0.03);
+    text-align: center;
+    position: relative;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    margin-bottom: 30px;
+}
+
+.upload-area.drag-over {
+    background: rgba(46, 125, 50, 0.1);
+    border-color: var(--primary-dark);
+    transform: scale(1.02);
+    box-shadow: 0 10px 40px rgba(46, 125, 50, 0.15);
+}
+
+.upload-icon {
+    font-size: 80px;
+    color: var(--primary);
+    margin-bottom: 30px;
+}
+
+.upload-text {
+    font-size: 1.4rem;
+    margin-bottom: 30px;
+    color: #333;
+    font-weight: 500;
+}
+
+.upload-divider {
+    display: flex;
+    align-items: center;
+    margin: 40px 0;
+}
+
+.divider-line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(to right, transparent, #ddd, transparent);
+}
+
+.divider-text {
+    padding: 0 20px;
+    color: #666;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.file-info {
+    text-align: center;
+    color: #888;
+    font-size: 0.9rem;
+}
+
+/* Секция обработки */
+.processing-section {
+    max-width: 600px;
+    margin: 40px auto;
+    text-align: center;
+    padding: 60px 40px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+}
+
+.processing-content {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.processing-icon {
+    font-size: 60px;
+    color: var(--primary);
+    margin-bottom: 30px;
+}
+
+.processing-content h3 {
+    margin-bottom: 15px;
+    color: var(--primary);
+}
+
+.processing-text {
+    color: #666;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 10px;
+    background: #f0f0f0;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 30px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--primary-light), var(--primary));
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 5px;
+}
+
+/* Секция результатов */
+.result-section {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #eee;
+}
+
+.result-header h2 {
+    color: var(--primary-dark);
+    margin: 0;
+}
+
+.result-container {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 60px;
+}
+
+.result-left {
+    flex: 1;
+}
+
+.image-container {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.image-container img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    display: block;
+}
+
+.image-info {
+    padding: 20px;
+    background: white;
+}
+
+.image-info h4 {
+    margin: 0 0 10px 0;
+    color: var(--primary);
+}
+
+.image-info p {
+    color: #666;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.result-right {
+    flex: 1;
+}
+
+.analysis-results {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.result-block {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: var(--shadow);
+    border-left: 5px solid var(--primary);
+}
+
+.result-header-block {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.result-header-block i {
+    font-size: 24px;
+    color: var(--primary);
+}
+
+.result-header-block h3 {
+    margin: 0;
+    color: var(--primary-dark);
+}
+
+.result-block p {
+    color: #333;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.confidence-level {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.confidence-value {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.action-buttons .btn {
+    flex: 1;
+}
+
+/* Дополнительная информация */
+.additional-info {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: var(--shadow);
+    margin-bottom: 60px;
+}
+
+.additional-info h3 {
+    margin-bottom: 30px;
+    color: var(--primary-dark);
+    text-align: center;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.info-card {
+    text-align: center;
+    padding: 25px 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-5px);
+    background: white;
+    box-shadow: var(--shadow);
+}
+
+.info-card i {
+    font-size: 30px;
+    color: var(--primary);
+    margin-bottom: 15px;
+}
+
+.info-card h4 {
+    margin: 0 0 10px 0;
+    color: var(--primary);
+    font-size: 1rem;
+}
+
+.info-card p {
+    color: #666;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* История анализов */
+.analysis-history {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: var(--shadow);
+}
+
+.analysis-history h3 {
+    margin-bottom: 30px;
+    color: var(--primary-dark);
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid var(--primary);
+    transition: all 0.3s ease;
+}
+
+.history-item:hover {
+    background: white;
+    box-shadow: var(--shadow);
+}
+
+.history-info h4 {
+    margin: 0 0 5px 0;
+    color: var(--primary-dark);
+}
+
+.history-info p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.history-status {
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-processing {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* Секция "Как это работает" */
+.how-analysis-works {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 80px 0;
+    margin-top: 60px;
+}
+
+.how-analysis-works h2 {
+    text-align: center;
+    margin-bottom: 60px;
+    color: var(--primary-dark);
+}
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+}
+
+.step {
+    text-align: center;
+    padding: 40px 20px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.step:hover {
+    transform: translateY(-10px);
+}
+
+.step-number {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 30px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.step i {
+    font-size: 40px;
+    color: var(--primary);
+    margin-bottom: 20px;
+}
+
+.step h3 {
+    margin-bottom: 15px;
+    color: var(--primary-dark);
+}
+
+.step p {
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Адаптивность для страницы анализа */
+@media (max-width: 992px) {
+    .result-container {
+        flex-direction: column;
+    }
+
+    .info-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .steps-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .analysis-header h1 {
+        font-size: 2.5rem;
+    }
+
+    .upload-area {
+        padding: 60px 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .analysis-page {
+        padding-top: 100px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .steps-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .analysis-header h1 {
+        font-size: 2rem;
+    }
+
+    .analysis-subtitle {
+        font-size: 1.1rem;
+    }
+
+    .upload-icon {
+        font-size: 60px;
+    }
+
+    .upload-text {
+        font-size: 1.2rem;
+    }
+
+    .result-header {
+        flex-direction: column;
+        gap: 20px;
+        align-items: stretch;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .image-container img {
+        height: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .analysis-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .upload-area {
+        padding: 40px 15px;
+    }
+
+    .upload-icon {
+        font-size: 50px;
+    }
+
+    .image-container img {
+        height: 250px;
+    }
+
+    .processing-section {
+        padding: 40px 20px;
+    }
+}
