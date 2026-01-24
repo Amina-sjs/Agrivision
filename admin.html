@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель администратора | AgriVision</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="admin-style.css">
+
+    
+    
+    <style>
+        /* Дополнительная фиксация для корректного отображения */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        
+        .admin-panel-overlay.active, .admin-panel.active {
+            display: block !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="adminOverlay" class="admin-panel-overlay active"></div>
+    
+    <div id="adminPanel" class="admin-panel active">
+        </div>
+
+    <div id="notificationContainer"></div>
+
+    <!-- добавление статьи модалка -->
+    <div id="articleModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Добавить статью</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <form id="articleForm" onsubmit="saveArticleData(event)">
+            <input type="hidden" id="articleId"> <div class="form-group">
+                <label>Заголовок статьи</label>
+                <input type="text" id="articleTitle" required placeholder="Введите название...">
+            </div>
+            <div class="form-group">
+                <label>Ссылка на изображение</label>
+                <input type="text" id="articleImage" placeholder="https://example.com/image.jpg">
+            </div>
+            <div class="form-group">
+                <label>Текст статьи</label>
+                <textarea id="articleContent" rows="10" required placeholder="О чем будем писать?"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="admin-btn btn-secondary close-modal">Отмена</button>
+                <button type="submit" class="admin-btn btn-success">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+    <script src="admin.js"></script>
+
+    <script>
+        // Проверка: если в localStorage нет базы данных, админка может упасть
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!localStorage.getItem('agrivision_db')) {
+                console.warn('База данных не найдена. Создаю пустую структуру...');
+                const emptyDb = {
+                    requests: [],
+                    users: [],
+                    settings: {
+                        siteName: "AgriVision",
+                        contactEmail: "admin@agrivision.ru",
+                        supportPhone: "+7 (000) 000-00-00",
+                        siteStatus: "active"
+                    }
+                };
+                localStorage.setItem('agrivision_db', JSON.stringify(emptyDb));
+                window.location.reload();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -477,6 +477,35 @@
     </div>
 </section>
 
+
+<!-- Раздел статей -->
+<section class="articles-section" id="articles">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="text-primary" data-key="articles-title">Полезные статьи о сельском хозяйстве</h2>
+            <p data-key="articles-subtitle">Узнайте больше о болезнях растений, методах лечения и современных технологиях в сельском хозяйстве</p>
+        </div>
+        
+        <!-- Контейнер для статей (здесь будут загружаться статьи) -->
+        <div id="articlesContainer" class="articles-grid">
+            <!-- Статьи будут загружены автоматически -->
+        </div>
+        
+        <!-- Сообщение если нет статей (показывается временно) -->
+        <div id="noArticlesMessage" style="display: none; text-align: center; padding: 40px;">
+            <i class="fas fa-newspaper" style="font-size: 48px; color: #ddd; margin-bottom: 20px;"></i>
+            <h3 style="color: #666;">Статей пока нет</h3>
+            <p style="color: #999;">Администратор еще не добавил статьи. Зайдите позже!</p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="#articles" class="btn btn-outline" id="viewAllArticlesBtn" style="display: none;">
+                <i class="fas fa-book-open"></i> Все статьи
+            </a>
+        </div>
+    </div>
+</section>
+
 <!-- Footer -->
 <footer>
     <div class="container">
@@ -596,5 +625,6 @@
 <script src="script.js"></script>
 <script src="auth.js"></script>
 <script src="language.js"></script>
+<script src="articles.js"></script>
 </body>
 </html>
