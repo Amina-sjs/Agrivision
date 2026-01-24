@@ -5,83 +5,215 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Панель администратора | AgriVision</title>
     
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
+    <!-- Основные стили админки -->
     <link rel="stylesheet" href="admin-style.css">
-
-    
     
     <style>
-        /* Дополнительная фиксация для корректного отображения */
-        body {
+        
+        * {
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
+            box-sizing: border-box;
         }
         
-        .admin-panel-overlay.active, .admin-panel.active {
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            overflow: hidden;
+        }
+        
+        /* Оверлей фона */
+        #adminOverlay {
+            display: none;
+        }
+        
+        /* Основная панель */
+        #adminPanel {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        
+        /* Активные состояния будут управляться JS */
+        .active {
             display: block !important;
         }
+        
+        /* Уведомления - базовые стили */
+        .notification {
+            display: none;
+        }
+        
+        /* Модальное окно статей (скрыто по умолчанию) */
+        #articleModal {
+            display: none;
+        }
+        
+        
     </style>
 </head>
 <body>
-
-    <div id="adminOverlay" class="admin-panel-overlay active"></div>
+    <!-- Оверлей фона -->
+    <div id="adminOverlay" class="admin-panel-overlay"></div>
     
-    <div id="adminPanel" class="admin-panel active">
-        </div>
-
-    <div id="notificationContainer"></div>
-
-    <!-- добавление статьи модалка -->
+    <!-- Основная панель администратора -->
+    <div id="adminPanel" class="admin-panel"></div>
+    
+    <!-- Контейнер для динамических модальных окон -->
+    <div id="modalsContainer"></div>
+    
+    <!-- Существующее модальное окно для статей (оставляем для совместимости) -->
     <div id="articleModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 id="modalTitle">Добавить статью</h3>
-            <button class="close-modal">&times;</button>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Добавить статью</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="articleForm" onsubmit="saveArticleData(event)">
+                <input type="hidden" id="articleId">
+                <div class="form-group">
+                    <label>Заголовок статьи</label>
+                    <input type="text" id="articleTitle" required placeholder="Введите название...">
+                </div>
+                <div class="form-group">
+                    <label>Ссылка на изображение</label>
+                    <input type="text" id="articleImage" placeholder="https://example.com/image.jpg">
+                </div>
+                <div class="form-group">
+                    <label>Текст статьи</label>
+                    <textarea id="articleContent" rows="10" required placeholder="О чем будем писать?"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="admin-btn btn-secondary close-modal">Отмена</button>
+                    <button type="submit" class="admin-btn btn-success">Сохранить</button>
+                </div>
+            </form>
         </div>
-        <form id="articleForm" onsubmit="saveArticleData(event)">
-            <input type="hidden" id="articleId"> <div class="form-group">
-                <label>Заголовок статьи</label>
-                <input type="text" id="articleTitle" required placeholder="Введите название...">
-            </div>
-            <div class="form-group">
-                <label>Ссылка на изображение</label>
-                <input type="text" id="articleImage" placeholder="https://example.com/image.jpg">
-            </div>
-            <div class="form-group">
-                <label>Текст статьи</label>
-                <textarea id="articleContent" rows="10" required placeholder="О чем будем писать?"></textarea>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="admin-btn btn-secondary close-modal">Отмена</button>
-                <button type="submit" class="admin-btn btn-success">Сохранить</button>
-            </div>
-        </form>
     </div>
-</div>
 
+    <!-- Основной скрипт админки -->
     <script src="admin.js"></script>
-
+    
     <script>
-        // Проверка: если в localStorage нет базы данных, админка может упасть
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!localStorage.getItem('agrivision_db')) {
-                console.warn('База данных не найдена. Создаю пустую структуру...');
-                const emptyDb = {
-                    requests: [],
-                    users: [],
-                    settings: {
-                        siteName: "AgriVision",
-                        contactEmail: "admin@agrivision.ru",
-                        supportPhone: "+7 (000) 000-00-00",
-                        siteStatus: "active"
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Admin panel loading...');
+        
+        // Проверка данных в localStorage
+        if (!localStorage.getItem('agrivision_db')) {
+            console.log('Создаю начальную структуру данных...');
+            const initialData = {
+                users: [
+                    {
+                        id: 1,
+                        name: "Администратор",
+                        email: "admin@agrivision.ru",
+                        password: "AgriVision2024!",
+                        role: "admin",
+                        registrationDate: new Date().toISOString()
                     }
-                };
-                localStorage.setItem('agrivision_db', JSON.stringify(emptyDb));
-                window.location.reload();
+                ],
+                requests: [],
+                articles: [], // Добавляем массив для статей
+                settings: {
+                    siteName: "AgriVision",
+                    contactEmail: "info@agrivision.ru",
+                    supportPhone: "+7 (800) 123-45-67",
+                    siteStatus: "active"
+                }
+            };
+            localStorage.setItem('agrivision_db', JSON.stringify(initialData));
+        }
+        
+        // Проверка прав доступа
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || currentUser.role !== 'admin') {
+            alert('Доступ запрещен! Требуются права администратора.');
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        // Показываем панель
+        setTimeout(() => {
+            document.getElementById('adminOverlay').classList.add('active');
+            document.getElementById('adminPanel').classList.add('active');
+        }, 100);
+    });
+    
+    // Функция для инициализации таблиц с прокруткой
+    function initTablesScroll() {
+        setTimeout(() => {
+            const tables = document.querySelectorAll('.table-container');
+            tables.forEach(table => {
+                // Добавляем индикатор прокрутки на маленьких экранах
+                if (table.scrollWidth > table.clientWidth) {
+                    table.style.position = 'relative';
+                    
+                    // Добавляем градиент для индикации прокрутки
+                    if (!table.dataset.scrollStyled) {
+                        const style = document.createElement('style');
+                        style.textContent = `
+                            .table-container::-webkit-scrollbar-thumb {
+                                background: linear-gradient(90deg, #2e7d32, #4caf50);
+                            }
+                        `;
+                        document.head.appendChild(style);
+                        table.dataset.scrollStyled = true;
+                    }
+                }
+            });
+            
+            // Центрируем содержимое таблиц
+            document.querySelectorAll('.admin-table td').forEach(td => {
+                if (td.textContent.includes('Нет') || td.textContent.includes('пока')) {
+                    td.style.textAlign = 'center';
+                    td.style.fontStyle = 'italic';
+                    td.style.color = '#666';
+                }
+            });
+        }, 500);
+    }
+    
+    // Вызываем при изменении размеров окна
+    window.addEventListener('resize', initTablesScroll);
+    
+    // Также вызываем после загрузки контента админки
+    if (typeof initAdminPanel !== 'undefined') {
+        const originalInit = initAdminPanel;
+        window.initAdminPanel = function() {
+            originalInit();
+            setTimeout(initTablesScroll, 1000);
+        };
+    }
+    
+    // Вызываем initTablesScroll после полной загрузки
+    window.addEventListener('load', function() {
+        setTimeout(initTablesScroll, 1500);
+    });
+        
+    // Обработчик для кнопки закрытия в модалке статей
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('close-modal')) {
+            const modal = e.target.closest('.modal');
+            if (modal) {
+                modal.style.display = 'none';
             }
-        });
-    </script>
+        }
+    });
+    
+    // Функция для совместимости со старым кодом
+    function saveArticleData(event) {
+        event.preventDefault();
+        alert('Функция сохранения статьи будет реализована в admin.js');
+        // Закрываем модалку
+        document.getElementById('articleModal').style.display = 'none';
+    }
+</script>
+    
 </body>
 </html>
