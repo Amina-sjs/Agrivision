@@ -229,12 +229,73 @@ function resetAnalysis() {
     showNotification('Готово к новому анализу', 'success');
 }
 
-function handleFileUpload(file) {
-    // Проверяем тип файла
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/avi', 'video/mov'];
+// function handleFileUpload(file) {
+//     // Проверяем тип файла
+//     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/avi', 'video/mov'];
 
+//     if (!validTypes.includes(file.type)) {
+//         showNotification('Пожалуйста, загрузите фото или видео файл (JPG, PNG, GIF, MP4, AVI, MOV)', 'error');
+//         return;
+//     }
+
+//     // Проверяем размер файла (макс 10MB)
+//     if (file.size > 10 * 1024 * 1024) {
+//         showNotification('Файл слишком большой. Максимальный размер: 10MB', 'error');
+//         return;
+//     }
+
+//     // Показываем процесс загрузки
+//     const uploadArea = document.getElementById('uploadArea');
+//     const processingArea = document.getElementById('processingArea');
+//     const resultArea = document.getElementById('resultArea');
+
+//     if (uploadArea) uploadArea.style.display = 'none';
+//     if (processingArea) processingArea.style.display = 'block';
+//     if (resultArea) resultArea.style.display = 'none';
+
+//     // Обновляем информацию о файле
+//     updateFileInfo(file);
+
+//     // Показываем превью файла
+//     const reader = new FileReader();
+
+//     reader.onload = function(e) {
+//         const uploadedImage = document.getElementById('uploadedImage');
+//         if (uploadedImage) {
+//             uploadedImage.src = e.target.result;
+//         }
+
+//         // Симуляция обработки файла ИИ с прогресс-баром
+//         simulateAIProcessing();
+//     };
+
+//     if (file.type.startsWith('image/')) {
+//         reader.readAsDataURL(file);
+//     } else {
+//         // Для видео показываем заглушку
+//         const uploadedImage = document.getElementById('uploadedImage');
+//         if (uploadedImage) {
+//             uploadedImage.src = 'https://via.placeholder.com/600x400/2e7d32/ffffff?text=Видео+файл+загружен';
+//         }
+//         reader.readAsDataURL(file);
+//     }
+// }
+
+
+async function handleFileUpload(file) {
+    // Проверяем авторизацию
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) {
+        showQuickAuthNotification();
+        setTimeout(() => openModal(document.getElementById('loginModal')), 500);
+        return;
+    }
+
+    // Проверяем тип файла
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    
     if (!validTypes.includes(file.type)) {
-        showNotification('Пожалуйста, загрузите фото или видео файл (JPG, PNG, GIF, MP4, AVI, MOV)', 'error');
+        showNotification('Пожалуйста, загрузите изображение (JPG, PNG, GIF, WEBP)', 'error');
         return;
     }
 
@@ -265,20 +326,182 @@ function handleFileUpload(file) {
             uploadedImage.src = e.target.result;
         }
 
-        // Симуляция обработки файла ИИ с прогресс-баром
-        simulateAIProcessing();
+        // Пробуем отправить на анализ через API
+        processImageWithAPI(file);
     };
 
-    if (file.type.startsWith('image/')) {
-        reader.readAsDataURL(file);
-    } else {
-        // Для видео показываем заглушку
-        const uploadedImage = document.getElementById('uploadedImage');
-        if (uploadedImage) {
-            uploadedImage.src = 'https://via.placeholder.com/600x400/2e7d32/ffffff?text=Видео+файл+загружен';
+    reader.readAsDataURL(file);
+}
+
+// Новая функция для обработки через API
+async function processImageWithAPI(file) {
+    const hasApiToken = Storage.getToken();
+    
+    if (hasApiToken) {
+        try {
+            console.log('🤖 Отправляем изображение на анализ через API...');
+            
+            // Реальный анализ через API
+            const result = await api.uploadPhoto(file);
+            
+            console.log('✅ Анализ завершен через API:', result);
+            
+            // Показываем реальный результат
+            showRealAnalysisResult(result);
+            
+            // Сохраняем результат в историю
+            saveAnalysisToHistory(result);
+            
+        } catch (apiError) {
+            console.warn('⚠️ Ошибка API анализа:', apiError.message);
+            // Если API не работает, используем демо-анализ
+            showNotification('Используем демо-режим анализа', 'info');
+            simulateAIProcessing();
         }
-        reader.readAsDataURL(file);
+    } else {
+        // Если нет токена API, используем демо-режим
+        console.log('📁 Используем демо-анализ (localStorage)');
+        simulateAIProcessing();
     }
+}
+
+// Функция для отображения реального результата анализа
+function showRealAnalysisResult(result) {
+    const processingArea = document.getElementById('processingArea');
+    const resultArea = document.getElementById('resultArea');
+    
+    // Определяем цвет рамки
+    const isHealthy = result.visual_status === 'healthy';
+    const borderColor = isHealthy ? '#4CAF50' : '#F44336';
+    const statusColor = isHealthy ? 'green' : 'red';
+    
+    // Создаем HTML с результатом
+    const resultHTML = `
+        <div class="analysis-result" style="border: 3px solid ${borderColor};">
+            <div class="result-header">
+                <h3 style="color: ${statusColor};">${result.status_text}</h3>
+                <span class="confidence-badge">${result.confidence}</span>
+            </div>
+            
+            <div class="result-details">
+                <p><strong>Диагноз:</strong> ${result.diagnosis_text}</p>
+                <p><strong>Симптомы:</strong> ${result.symptom_description}</p>
+                <p><strong>Рекомендация:</strong> ${result.recommendation}</p>
+                <p><strong>Метка:</strong> <span class="tag">${result.label}</span></p>
+                <p><strong>ID анализа:</strong> ${result.analysis_id}</p>
+            </div>
+            
+            <div class="result-image">
+                <p><strong>Анализируемое изображение:</strong></p>
+                <img src="${result.image_url}" 
+                     alt="Результат анализа" 
+                     style="max-width: 100%; border-radius: 8px; margin-top: 10px;">
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="saveAnalysisResult(${result.analysis_id})">
+                    <i class="fas fa-save"></i> Сохранить результат
+                </button>
+                <button class="btn btn-outline" onclick="resetAnalysis()">
+                    <i class="fas fa-redo"></i> Новый анализ
+                </button>
+            </div>
+        </div>
+    `;
+    
+    if (processingArea) processingArea.style.display = 'none';
+    if (resultArea) {
+        resultArea.innerHTML = resultHTML;
+        resultArea.style.display = 'block';
+    }
+    
+    showNotification('Анализ завершен!', 'success');
+}
+
+// Функция для сохранения анализа в историю
+function saveAnalysisToHistory(result) {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) return;
+    
+    const data = getAllData();
+    
+    const newAnalysis = {
+        id: data.analysis.length > 0 ? Math.max(...data.analysis.map(a => a.id)) + 1 : 1,
+        userId: currentUser.id,
+        analysis_id: result.analysis_id,
+        plantType: result.label || 'Растение',
+        diagnosis: result.diagnosis_text,
+        cause: result.symptom_description,
+        recommendation: result.recommendation,
+        confidence: parseFloat(result.confidence) || 0,
+        date: new Date().toISOString(),
+        status: 'completed',
+        image_url: result.image_url,
+        status_text: result.status_text,
+        visual_status: result.visual_status || 'diseased'
+    };
+    
+    // Добавляем в массив или создаем если нет
+    if (!data.analysis) data.analysis = [];
+    data.analysis.push(newAnalysis);
+    
+    saveData(data);
+    
+    console.log('💾 Анализ сохранен в историю:', newAnalysis);
+}
+
+// Обновляем функцию для загрузки истории
+async function loadAnalysisHistory() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const hasApiToken = Storage.getToken();
+    
+    let userAnalysis = [];
+    
+    // Пробуем загрузить через API
+    if (hasApiToken) {
+        try {
+            console.log('📥 Загружаем историю анализов через API...');
+            const apiHistory = await api.getAnalysisHistory();
+            
+            // Преобразуем данные API в формат приложения
+            userAnalysis = apiHistory.map(item => ({
+                id: item.analysis_id || Date.now(),
+                userId: currentUser.id,
+                analysis_id: item.analysis_id,
+                plantType: item.label || 'Растение',
+                diagnosis: item.diagnosis_text,
+                cause: item.symptom_description,
+                recommendation: item.recommendation,
+                confidence: parseFloat(item.confidence) || 0,
+                date: item.created_at || new Date().toISOString(),
+                status: 'completed',
+                image_url: item.image_url,
+                status_text: item.status_text,
+                visual_status: item.visual_status || 'diseased'
+            }));
+            
+            console.log('✅ История загружена через API:', userAnalysis.length, 'анализов');
+            
+        } catch (apiError) {
+            console.warn('⚠️ Ошибка загрузки истории через API:', apiError.message);
+            // Продолжаем с localStorage
+        }
+    }
+    
+    // Если не удалось через API или нет данных, загружаем из localStorage
+    if (userAnalysis.length === 0) {
+        console.log('📁 Загружаем историю из localStorage');
+        const data = getAllData();
+        userAnalysis = data.analysis ? data.analysis.filter(a => a.userId === currentUser.id) : [];
+    }
+    
+    // Если нет истории, создаем демо-данные
+    if (userAnalysis.length === 0) {
+        // ... твой существующий код для демо-данных ...
+    }
+    
+    // Отображаем историю (используй существующую функцию displayHistory)
+    displayHistory(userAnalysis);
 }
 
 function updateFileInfo(file) {

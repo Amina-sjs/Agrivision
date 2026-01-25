@@ -23,6 +23,160 @@ document.addEventListener('DOMContentLoaded', function() {
     initEventHandlers();
 });
 
+// ==============================
+// ИНТЕГРАЦИЯ ПРОФИЛЯ С API
+// ==============================
+
+// Модифицируем функцию loadUserData для работы с API
+async function loadUserData() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const hasApiToken = Storage.getToken();
+    
+    let userData = null;
+    
+    // Пробуем загрузить данные через API если есть токен
+    if (hasApiToken) {
+        try {
+            console.log('📥 Загружаем профиль через API...');
+            const apiProfile = await api.getProfile();
+            
+            // Преобразуем данные API в формат приложения
+            userData = {
+                id: currentUser?.id || Date.now(),
+                name: apiProfile.name || 'Пользователь',
+                email: apiProfile.email || '',
+                phone: apiProfile.phone || '',
+                role: currentUser?.role || 'user',
+                bio: '',
+                registrationDate: currentUser?.registrationDate || new Date().toISOString()
+            };
+            
+            console.log('✅ Профиль загружен через API:', userData);
+            
+        } catch (apiError) {
+            console.warn('⚠️ Ошибка загрузки профиля через API:', apiError.message);
+            // Продолжаем с localStorage
+        }
+    }
+    
+    // Если не удалось через API, загружаем из localStorage
+    if (!userData) {
+        console.log('📁 Загружаем профиль из localStorage');
+        const data = getAllData();
+        const user = data.users.find(u => u.id === currentUser.id);
+        userData = user;
+    }
+    
+    if (userData) {
+        // Заполняем поля профиля
+        document.getElementById('profileUserName').textContent = userData.name;
+        document.getElementById('profileUserEmail').textContent = userData.email;
+        document.getElementById('profileUserRole').textContent = userData.role === 'admin' ?
+            window.getTranslation('admin') :
+            window.getTranslation('user');
+
+        document.getElementById('userName').textContent = userData.name;
+        document.getElementById('mobileUserName').textContent = userData.name;
+
+        // Заполняем форму
+        document.getElementById('profileName').value = userData.name || '';
+        document.getElementById('profileEmail').value = userData.email || '';
+        document.getElementById('profilePhone').value = userData.phone || '';
+        document.getElementById('profileRole').value = userData.role === 'admin' ?
+            window.getTranslation('admin') :
+            window.getTranslation('user');
+        document.getElementById('profileBio').value = userData.bio || '';
+
+        // Блокируем email
+        document.getElementById('profileEmail').disabled = true;
+
+        // Обновляем дату регистрации
+        if (userData.registrationDate) {
+            const regDate = new Date(userData.registrationDate);
+            document.getElementById('userSince').textContent =
+                window.getTranslation('user-since') + ': ' +
+                regDate.toLocaleDateString(window.currentLanguage === 'ru' ? 'ru-RU' : 'en-US');
+        }
+    }
+}
+
+// Обновляем функцию saveProfileData для работы с API
+async function saveProfileData() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const hasApiToken = Storage.getToken();
+    
+    const name = document.getElementById('profileName').value;
+    const phone = document.getElementById('profilePhone').value;
+    const bio = document.getElementById('profileBio').value;
+    
+    // Пробуем сохранить через API если есть токен
+    if (hasApiToken) {
+        try {
+            console.log('📤 Сохраняем профиль через API...');
+            
+            const profileData = {
+                name: name,
+                phone: phone || null,
+                location: null // Можно добавить поле в форму
+            };
+            
+            await api.updateProfile(profileData);
+            
+            // Обновляем данные в localStorage для совместимости
+            const data = getAllData();
+            const userIndex = data.users.findIndex(u => u.id === currentUser.id);
+            
+            if (userIndex !== -1) {
+                data.users[userIndex].name = name;
+                data.users[userIndex].phone = phone;
+                data.users[userIndex].bio = bio;
+                saveData(data);
+            }
+            
+            // Обновляем текущего пользователя
+            currentUser.name = name;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            console.log('✅ Профиль обновлен через API');
+            showNotification(window.getTranslation('profile-updated'), 'success');
+            
+        } catch (apiError) {
+            console.warn('⚠️ Ошибка обновления через API:', apiError.message);
+            // Продолжаем с localStorage
+        }
+    }
+    
+    // Если нет токена или ошибка API, используем localStorage
+    const data = getAllData();
+    const userIndex = data.users.findIndex(u => u.id === currentUser.id);
+
+    if (userIndex !== -1) {
+        data.users[userIndex].name = name;
+        data.users[userIndex].phone = phone;
+        data.users[userIndex].bio = bio;
+
+        saveData(data);
+
+        // Обновляем текущего пользователя
+        currentUser.name = name;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+        showNotification(window.getTranslation('profile-updated'), 'success');
+    }
+    
+    // Блокируем поля обратно
+    const formInputs = document.querySelectorAll('#profileForm input:not([disabled]), #profileForm textarea');
+    formInputs.forEach(input => {
+        input.disabled = true;
+        if (input.id === 'profileEmail') input.disabled = true;
+    });
+
+    // Скрываем кнопки сохранения и отмены
+    document.getElementById('saveProfileBtn').style.display = 'none';
+    document.getElementById('cancelEditBtn').style.display = 'none';
+    document.getElementById('editProfileBtn').style.display = 'inline-block';
+}
+
 function initProfilePage() {
     // Инициализация мобильного меню
     const burgerMenu = document.getElementById('burgerMenu');
