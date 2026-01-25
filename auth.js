@@ -1,93 +1,139 @@
-// auth.js - Исправленная версия с поддержкой API
+// auth.js - Авторизация для нового бэкенда
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Проверяем, авторизован ли пользователь
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 Инициализация AgriVision');
+    
+    // 1. Инициализируем API
+    await initApi();
+    
+    // 2. Проверяем авторизацию
     checkAuth();
-
-    // Обновляем мобильное меню
+    
+    // 3. Обновляем меню
     updateMobileMenu();
 });
 
-// ==============================
-// ИНТЕГРАЦИЯ С БЭКЕНД API
-// ==============================
-
-// Проверяем, используем ли мы localStorage или API
-let useBackendAPI = false;
-let apiAvailable = false;
-
-// Проверяем доступность API при загрузке
-async function initApiCheck() {
+// Инициализация API
+async function initApi() {
+    console.log('🔍 Проверяем доступность API...');
+    
     try {
-        const token = localStorage.getItem('access_token');
-        if (token) {
-            console.log('✅ Найден токен API, используем бэкенд');
-            useBackendAPI = true;
-            apiAvailable = true;
-            return;
-        }
+        // Используем наш ApiClient
+        const isAvailable = await api.checkConnection();
         
-        // Пробуем получить статьи (публичный endpoint)
-        const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ARTICLES}`, {
-            method: 'GET',
-            headers: {
-                'Accept-Language': 'ru'
+        if (isAvailable) {
+            console.log('✅ API доступен! Используем бэкенд');
+            
+            // Проверяем сохраненный токен
+            const token = Storage.getToken();
+            if (token) {
+                try {
+                    // Проверяем валидность токена
+                    const profile = await api.getProfile();
+                    console.log('✅ Токен валидный, пользователь:', profile.email);
+                    
+                    // Сохраняем в совместимом формате
+                    Storage.setUser(profile);
+                    
+                } catch (error) {
+                    console.log('❌ Токен невалидный, удаляем');
+                    Storage.clear();
+                }
             }
-        });
-        
-        if (response.ok) {
-            console.log('✅ API доступен');
-            apiAvailable = true;
+        } else {
+            // Если API недоступен, переходим в локальный режим
+            console.log('📁 API недоступен, перехожу в локальный режим');
+            initLocalStorageData();
         }
+        
     } catch (error) {
-        console.log('📁 API недоступен, используем localStorage');
-        apiAvailable = false;
+        console.log('❌ Ошибка инициализации API:', error.message);
+        console.log('📁 Перехожу в локальный режим');
+        initLocalStorageData();
     }
 }
 
-// Запускаем проверку при загрузке
-initApiCheck();
+function initLocalStorageData() {
+    const dataStr = localStorage.getItem('agrivision_db');
+    
+    if (!dataStr) {
+        console.log('📝 Создаю начальные данные в localStorage...');
+        
+        const initialData = {
+            users: [
+                {
+                    id: 1,
+                    name: 'Администратор',
+                    email: 'admin@agrivision.ru',
+                    password: 'AgriVision2024!',
+                    phone: '+7 (900) 000-00-00',
+                    role: 'admin',
+                    registrationDate: new Date().toISOString()
+                },
+                {
+                    id: 2,
+                    name: 'Тестовый пользователь',
+                    email: 'test@test.com',
+                    password: '123456',
+                    phone: '+7 (999) 123-45-67',
+                    role: 'user',
+                    registrationDate: new Date().toISOString()
+                }
+            ],
+            requests: [],
+            articles: [
+                {
+                    id: 1,
+                    title: "Как определить болезнь растений по листьям",
+                    content: "Полное содержание статьи о болезнях растений...",
+                    description: "Узнайте, как по внешним признакам определить заболевания сельскохозяйственных культур",
+                    image: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6",
+                    category: "diseases",
+                    date: new Date().toLocaleDateString('ru-RU'),
+                    createdAt: new Date().toISOString(),
+                    author: "Администратор",
+                    views: 0,
+                    isPublished: true
+                }
+            ],
+            analysis: []
+        };
+        
+        localStorage.setItem('agrivision_db', JSON.stringify(initialData));
+        console.log('✅ Начальные данные созданы');
+    }
+}
 
-// ОБНОВЛЕННАЯ ФУНКЦИЯ ВХОДА (единственная!)
+// Универсальная функция входа
 async function loginUser(email, password) {
-    // Сначала пробуем API если доступен
-    if (apiAvailable) {
+    console.log('🔐 Попытка входа...');
+    
+    if (api.isAvailable) {
         try {
             console.log('🔐 Пробуем вход через API...');
             
-            const result = await api.login(email, password);
+            const result = await api.login({ email, password });
             
             if (result.access_token) {
-                // Сохраняем токен
-                localStorage.setItem('access_token', result.access_token);
+                console.log('✅ Вход через API успешен');
                 
-                // Получаем профиль через API
+                // Получаем профиль
                 const profile = await api.getProfile();
-                
-                // Сохраняем в формате совместимости с текущей системой
-                const currentUser = {
-                    id: profile.id || Date.now(),
-                    name: profile.name || email.split('@')[0],
-                    email: profile.email || email,
-                    role: 'user',
-                    phone: profile.phone || '',
-                    location: profile.location || ''
-                };
-                
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 
                 // Обновляем UI
                 checkAuth();
                 updateMobileMenu();
+                showNotification(`Добро пожаловать, ${profile.name}!`, 'success');
                 
                 return { 
                     success: true, 
-                    user: currentUser,
+                    user: profile,
                     backend: 'api'
                 };
             }
         } catch (apiError) {
             console.warn('⚠️ Ошибка API входа:', apiError.message);
+            showNotification('Ошибка входа через API: ' + apiError.message, 'error');
             // Продолжаем с localStorage
         }
     }
@@ -107,12 +153,14 @@ async function loginUser(email, password) {
 
         checkAuth();
         updateMobileMenu();
+        showNotification(`Добро пожаловать, ${user.name}!`, 'success');
         return { 
             success: true, 
             user: user,
             backend: 'local'
         };
     } else {
+        showNotification('Неверный email или пароль', 'error');
         return { 
             success: false, 
             message: 'Неверный email или пароль',
@@ -121,34 +169,33 @@ async function loginUser(email, password) {
     }
 }
 
-// ОБНОВЛЕННАЯ ФУНКЦИЯ РЕГИСТРАЦИИ (единственная!)
-async function registerUser(name, email, phone, password) {
-    // Сначала пробуем API если доступен
-    if (apiAvailable) {
+// Универсальная функция регистрации
+async function registerUser(name, email, phone, password, location) {
+    console.log('📝 Попытка регистрации...');
+    
+    if (api.isAvailable) {
         try {
             console.log('📝 Пробуем регистрацию через API...');
             
             const userData = {
                 name: name,
                 email: email,
+                password: password,
                 phone: phone || null,
-                location: null
+                location: location || null
             };
             
             const result = await api.register(userData);
-            console.log('✅ Регистрация через API успешна:', result);
+            console.log('✅ Регистрация через API успешна');
             
             // После регистрации автоматически логинимся
             const loginResult = await loginUser(email, password);
             
-            return { 
-                success: true, 
-                user: loginResult.user,
-                backend: 'api'
-            };
+            return loginResult;
             
         } catch (apiError) {
             console.warn('⚠️ Ошибка API регистрации:', apiError.message);
+            showNotification('Ошибка регистрации через API: ' + apiError.message, 'error');
             // Продолжаем с localStorage
         }
     }
@@ -160,6 +207,7 @@ async function registerUser(name, email, phone, password) {
     // Проверка на существующего пользователя
     const existingUser = data.users.find(user => user.email === email);
     if (existingUser) {
+        showNotification('Пользователь с таким email уже существует', 'error');
         return { 
             success: false, 
             message: "Пользователь с таким email уже существует",
@@ -177,6 +225,7 @@ async function registerUser(name, email, phone, password) {
         email,
         phone,
         password,
+        location: location || '',
         role: 'user',
         registrationDate: new Date().toISOString()
     };
@@ -185,17 +234,19 @@ async function registerUser(name, email, phone, password) {
     saveData(data);
 
     // Автоматический вход после регистрации
-    loginUser(email, password);
+    const loginResult = await loginUser(email, password);
+    
+    if (loginResult.success) {
+        showNotification(`Регистрация успешна! Добро пожаловать, ${name}!`, 'success');
+    }
 
-    return { 
-        success: true, 
-        user: newUser,
-        backend: 'local'
-    };
+    return loginResult;
 }
 
+// Остальные функции (checkAuth, updateMobileMenu и т.д.) остаются без изменений
+// ...
 // ==============================
-// СТАРЫЕ ФУНКЦИИ (оставляем без изменений)
+// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 // ==============================
 
 function checkAuth() {
@@ -250,11 +301,9 @@ function showNotification(message, type = 'success', duration = 3000) {
     }, duration);
 }
 
-// Получить все данные
 function getAllData() {
     const dataStr = localStorage.getItem('agrivision_db');
     if (!dataStr) {
-        // Создаем начальную структуру данных
         const initialData = {
             users: [
                 {
@@ -276,7 +325,6 @@ function getAllData() {
     return JSON.parse(dataStr);
 }
 
-// Сохранить данные
 function saveData(data) {
     localStorage.setItem('agrivision_db', JSON.stringify(data));
 }

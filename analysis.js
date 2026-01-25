@@ -229,58 +229,6 @@ function resetAnalysis() {
     showNotification('Готово к новому анализу', 'success');
 }
 
-// function handleFileUpload(file) {
-//     // Проверяем тип файла
-//     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/avi', 'video/mov'];
-
-//     if (!validTypes.includes(file.type)) {
-//         showNotification('Пожалуйста, загрузите фото или видео файл (JPG, PNG, GIF, MP4, AVI, MOV)', 'error');
-//         return;
-//     }
-
-//     // Проверяем размер файла (макс 10MB)
-//     if (file.size > 10 * 1024 * 1024) {
-//         showNotification('Файл слишком большой. Максимальный размер: 10MB', 'error');
-//         return;
-//     }
-
-//     // Показываем процесс загрузки
-//     const uploadArea = document.getElementById('uploadArea');
-//     const processingArea = document.getElementById('processingArea');
-//     const resultArea = document.getElementById('resultArea');
-
-//     if (uploadArea) uploadArea.style.display = 'none';
-//     if (processingArea) processingArea.style.display = 'block';
-//     if (resultArea) resultArea.style.display = 'none';
-
-//     // Обновляем информацию о файле
-//     updateFileInfo(file);
-
-//     // Показываем превью файла
-//     const reader = new FileReader();
-
-//     reader.onload = function(e) {
-//         const uploadedImage = document.getElementById('uploadedImage');
-//         if (uploadedImage) {
-//             uploadedImage.src = e.target.result;
-//         }
-
-//         // Симуляция обработки файла ИИ с прогресс-баром
-//         simulateAIProcessing();
-//     };
-
-//     if (file.type.startsWith('image/')) {
-//         reader.readAsDataURL(file);
-//     } else {
-//         // Для видео показываем заглушку
-//         const uploadedImage = document.getElementById('uploadedImage');
-//         if (uploadedImage) {
-//             uploadedImage.src = 'https://via.placeholder.com/600x400/2e7d32/ffffff?text=Видео+файл+загружен';
-//         }
-//         reader.readAsDataURL(file);
-//     }
-// }
-
 
 async function handleFileUpload(file) {
     // Проверяем авторизацию
@@ -363,6 +311,34 @@ async function processImageWithAPI(file) {
         console.log('📁 Используем демо-анализ (localStorage)');
         simulateAIProcessing();
     }
+}
+
+// Восстанавливаем отсутствующие функции
+function getAllData() {
+    const data = localStorage.getItem('agrivision_db');
+    return data ? JSON.parse(data) : { users: [], requests: [], analysis: [], articles: [] };
+}
+
+function saveData(data) {
+    localStorage.setItem('agrivision_db', JSON.stringify(data));
+}
+
+function showNotification(message, type = 'success', duration = 3000) {
+    const notification = document.getElementById('notification');
+    if (!notification) return;
+    
+    notification.textContent = message;
+    notification.className = `notification ${type} active`;
+    
+    setTimeout(() => {
+        notification.classList.remove('active');
+    }, duration);
+}
+
+function openModal(modal) {
+    if (!modal) return;
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
 }
 
 // Функция для отображения реального результата анализа

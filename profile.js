@@ -1,14 +1,15 @@
-// Скрипт для страницы профиля с поддержкой перевода
+// Скрипт для страницы профиля с поддержкой перевода и новой структурой API
 
 // Глобальная функция для обновления контента профиля при смене языка
 window.updateProfileContent = function() {
     loadUserData();
     loadNotifications();
     loadAnalysisHistory();
+    loadUserServices();
     loadStatistics();
 };
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Проверяем авторизацию
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     if (!currentUser) {
@@ -19,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Инициализация
     initProfilePage();
-    updateProfileContent();
+    await updateProfileContent();
     initEventHandlers();
 });
 
@@ -30,25 +31,25 @@ document.addEventListener('DOMContentLoaded', function() {
 // Модифицируем функцию loadUserData для работы с API
 async function loadUserData() {
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    const hasApiToken = Storage.getToken();
     
     let userData = null;
     
-    // Пробуем загрузить данные через API если есть токен
-    if (hasApiToken) {
+    // Пробуем загрузить данные через API если он доступен
+    if (window.api && api.isAvailable) {
         try {
             console.log('📥 Загружаем профиль через API...');
             const apiProfile = await api.getProfile();
             
             // Преобразуем данные API в формат приложения
             userData = {
-                id: currentUser?.id || Date.now(),
+                id: currentUser?.id || apiProfile.id || Date.now(),
                 name: apiProfile.name || 'Пользователь',
                 email: apiProfile.email || '',
                 phone: apiProfile.phone || '',
-                role: currentUser?.role || 'user',
-                bio: '',
-                registrationDate: currentUser?.registrationDate || new Date().toISOString()
+                role: apiProfile.role || currentUser?.role || 'user',
+                bio: apiProfile.bio || '',
+                location: apiProfile.location || '',
+                registrationDate: apiProfile.created_at || currentUser?.registrationDate || new Date().toISOString()
             };
             
             console.log('✅ Профиль загружен через API:', userData);
@@ -64,7 +65,7 @@ async function loadUserData() {
         console.log('📁 Загружаем профиль из localStorage');
         const data = getAllData();
         const user = data.users.find(u => u.id === currentUser.id);
-        userData = user;
+        userData = user || currentUser;
     }
     
     if (userData) {
@@ -82,6 +83,7 @@ async function loadUserData() {
         document.getElementById('profileName').value = userData.name || '';
         document.getElementById('profileEmail').value = userData.email || '';
         document.getElementById('profilePhone').value = userData.phone || '';
+        document.getElementById('profileLocation').value = userData.location || '';
         document.getElementById('profileRole').value = userData.role === 'admin' ?
             window.getTranslation('admin') :
             window.getTranslation('user');
@@ -103,21 +105,22 @@ async function loadUserData() {
 // Обновляем функцию saveProfileData для работы с API
 async function saveProfileData() {
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    const hasApiToken = Storage.getToken();
     
     const name = document.getElementById('profileName').value;
     const phone = document.getElementById('profilePhone').value;
+    const location = document.getElementById('profileLocation').value;
     const bio = document.getElementById('profileBio').value;
     
-    // Пробуем сохранить через API если есть токен
-    if (hasApiToken) {
+    // Пробуем сохранить через API если он доступен
+    if (window.api && api.isAvailable) {
         try {
             console.log('📤 Сохраняем профиль через API...');
             
             const profileData = {
                 name: name,
                 phone: phone || null,
-                location: null // Можно добавить поле в форму
+                location: location || null,
+                bio: bio || null
             };
             
             await api.updateProfile(profileData);
@@ -129,12 +132,16 @@ async function saveProfileData() {
             if (userIndex !== -1) {
                 data.users[userIndex].name = name;
                 data.users[userIndex].phone = phone;
+                data.users[userIndex].location = location;
                 data.users[userIndex].bio = bio;
                 saveData(data);
             }
             
             // Обновляем текущего пользователя
             currentUser.name = name;
+            currentUser.phone = phone;
+            currentUser.location = location;
+            currentUser.bio = bio;
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
             
             console.log('✅ Профиль обновлен через API');
@@ -143,25 +150,11 @@ async function saveProfileData() {
         } catch (apiError) {
             console.warn('⚠️ Ошибка обновления через API:', apiError.message);
             // Продолжаем с localStorage
+            saveProfileToLocalStorage(name, phone, location, bio, currentUser);
         }
-    }
-    
-    // Если нет токена или ошибка API, используем localStorage
-    const data = getAllData();
-    const userIndex = data.users.findIndex(u => u.id === currentUser.id);
-
-    if (userIndex !== -1) {
-        data.users[userIndex].name = name;
-        data.users[userIndex].phone = phone;
-        data.users[userIndex].bio = bio;
-
-        saveData(data);
-
-        // Обновляем текущего пользователя
-        currentUser.name = name;
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-
-        showNotification(window.getTranslation('profile-updated'), 'success');
+    } else {
+        // Если API недоступен, используем localStorage
+        saveProfileToLocalStorage(name, phone, location, bio, currentUser);
     }
     
     // Блокируем поля обратно
@@ -175,6 +168,29 @@ async function saveProfileData() {
     document.getElementById('saveProfileBtn').style.display = 'none';
     document.getElementById('cancelEditBtn').style.display = 'none';
     document.getElementById('editProfileBtn').style.display = 'inline-block';
+}
+
+function saveProfileToLocalStorage(name, phone, location, bio, currentUser) {
+    const data = getAllData();
+    const userIndex = data.users.findIndex(u => u.id === currentUser.id);
+
+    if (userIndex !== -1) {
+        data.users[userIndex].name = name;
+        data.users[userIndex].phone = phone;
+        data.users[userIndex].location = location;
+        data.users[userIndex].bio = bio;
+
+        saveData(data);
+
+        // Обновляем текущего пользователя
+        currentUser.name = name;
+        currentUser.phone = phone;
+        currentUser.location = location;
+        currentUser.bio = bio;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+        showNotification(window.getTranslation('profile-updated'), 'success');
+    }
 }
 
 function initProfilePage() {
@@ -308,15 +324,31 @@ function initProfilePage() {
     const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
 
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
+        logoutBtn.addEventListener('click', async function() {
+            if (window.api && api.isAvailable) {
+                try {
+                    await api.logout();
+                } catch (error) {
+                    console.log('Ошибка выхода через API:', error);
+                }
+            }
             localStorage.removeItem('currentUser');
+            localStorage.removeItem('access_token');
             window.location.href = 'index.html';
         });
     }
 
     if (mobileLogoutBtn) {
-        mobileLogoutBtn.addEventListener('click', function() {
+        mobileLogoutBtn.addEventListener('click', async function() {
+            if (window.api && api.isAvailable) {
+                try {
+                    await api.logout();
+                } catch (error) {
+                    console.log('Ошибка выхода через API:', error);
+                }
+            }
             localStorage.removeItem('currentUser');
+            localStorage.removeItem('access_token');
             window.location.href = 'index.html';
         });
     }
@@ -332,8 +364,6 @@ function initProfilePage() {
         });
     });
 }
-
-
 
 function handleChangePassword(e) {
     e.preventDefault();
@@ -582,74 +612,105 @@ function clearAllNotifications() {
     showNotification(window.getTranslation('all-notifications-deleted'), 'success');
 }
 
-function loadAnalysisHistory() {
+async function loadAnalysisHistory() {
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    const data = getAllData();
+    
+    let userAnalysis = [];
+    
+    // Пробуем загрузить через API
+    if (window.api && api.isAvailable) {
+        try {
+            console.log('📥 Загружаем историю анализов через API...');
+            const apiHistory = await api.getAnalysisHistory();
+            
+            // Преобразуем данные API в формат приложения
+            userAnalysis = apiHistory.map(item => ({
+                id: item.analysis_id || Date.now(),
+                userId: currentUser.id,
+                analysis_id: item.analysis_id,
+                plantType: item.label || 'Растение',
+                diagnosis: item.diagnosis_text,
+                cause: item.symptom_description,
+                recommendation: item.recommendation,
+                confidence: parseFloat(item.confidence) || 0,
+                date: item.created_at || new Date().toISOString(),
+                status: 'completed',
+                image_url: item.image_url,
+                status_text: item.status_text,
+                visual_status: item.visual_status || 'diseased'
+            }));
+            
+            console.log('✅ История анализов загружена через API:', userAnalysis.length, 'анализов');
+            
+        } catch (apiError) {
+            console.warn('⚠️ Ошибка загрузки истории через API:', apiError.message);
+            // Продолжаем с localStorage
+            userAnalysis = loadAnalysisFromLocalStorage(currentUser);
+        }
+    } else {
+        // Если API недоступен, загружаем из localStorage
+        userAnalysis = loadAnalysisFromLocalStorage(currentUser);
+    }
 
-    // Получаем историю анализов пользователя
-    const userAnalysis = data.analysis ? data.analysis.filter(a => a.userId === currentUser.id) : [];
+    // Отображаем историю
+    displayAnalysisHistory(userAnalysis);
+}
+
+function loadAnalysisFromLocalStorage(currentUser) {
+    console.log('📁 Загружаем историю анализов из localStorage');
+    const data = getAllData();
+    let userAnalysis = data.analysis ? data.analysis.filter(a => a.userId === currentUser.id) : [];
 
     // Если нет истории, создаем демо-данные
     if (userAnalysis.length === 0) {
-        const demoAnalysis = [
-            {
-                id: 1,
-                userId: currentUser.id,
-                plantType: window.currentLanguage === 'ru' ? 'Пшеница озимая' : 'Winter wheat',
-                diagnosis: window.currentLanguage === 'ru' ?
-                    'Растение здорово, признаки заболеваний отсутствуют' :
-                    'Plant is healthy, no signs of disease',
-                cause: window.currentLanguage === 'ru' ?
-                    'Оптимальные условия выращивания' :
-                    'Optimal growing conditions',
-                recommendation: window.currentLanguage === 'ru' ?
-                    'Продолжайте текущий режим полива и удобрения' :
-                    'Continue current watering and fertilizing regimen',
-                confidence: 92,
-                date: new Date(Date.now() - 86400000).toISOString(), // 1 день назад
-                status: 'completed'
-            },
-            {
-                id: 2,
-                userId: currentUser.id,
-                plantType: window.currentLanguage === 'ru' ? 'Томаты' : 'Tomatoes',
-                diagnosis: window.currentLanguage === 'ru' ?
-                    'Легкая форма мучнистой росы' :
-                    'Mild form of powdery mildew',
-                cause: window.currentLanguage === 'ru' ?
-                    'Высокая влажность воздуха' :
-                    'High air humidity',
-                recommendation: window.currentLanguage === 'ru' ?
-                    'Обработать фунгицидом Топаз' :
-                    'Treat with Topaz fungicide',
-                confidence: 85,
-                date: new Date(Date.now() - 172800000).toISOString(), // 2 дня назад
-                status: 'completed'
-            },
-            {
-                id: 3,
-                userId: currentUser.id,
-                plantType: window.currentLanguage === 'ru' ? 'Виноград' : 'Grapes',
-                diagnosis: window.currentLanguage === 'ru' ?
-                    'Анализ в процессе' :
-                    'Analysis in progress',
-                cause: window.currentLanguage === 'ru' ?
-                    'Обработка изображения ИИ' :
-                    'AI image processing',
-                recommendation: window.currentLanguage === 'ru' ?
-                    'Ожидайте результатов' :
-                    'Await results',
-                confidence: 0,
-                date: new Date().toISOString(),
-                status: 'processing'
-            }
-        ];
-
-        userAnalysis.push(...demoAnalysis);
+        userAnalysis = createDemoAnalysis(currentUser);
         data.analysis = userAnalysis;
         saveData(data);
     }
 
+    return userAnalysis;
+}
+
+function createDemoAnalysis(currentUser) {
+    return [
+        {
+            id: 1,
+            userId: currentUser.id,
+            plantType: window.currentLanguage === 'ru' ? 'Пшеница озимая' : 'Winter wheat',
+            diagnosis: window.currentLanguage === 'ru' ?
+                'Растение здорово, признаки заболеваний отсутствуют' :
+                'Plant is healthy, no signs of disease',
+            cause: window.currentLanguage === 'ru' ?
+                'Оптимальные условия выращивания' :
+                'Optimal growing conditions',
+            recommendation: window.currentLanguage === 'ru' ?
+                'Продолжайте текущий режим полива и удобрения' :
+                'Continue current watering and fertilizing regimen',
+            confidence: 92,
+            date: new Date(Date.now() - 86400000).toISOString(), // 1 день назад
+            status: 'completed'
+        },
+        {
+            id: 2,
+            userId: currentUser.id,
+            plantType: window.currentLanguage === 'ru' ? 'Томаты' : 'Tomatoes',
+            diagnosis: window.currentLanguage === 'ru' ?
+                'Легкая форма мучнистой росы' :
+                'Mild form of powdery mildew',
+            cause: window.currentLanguage === 'ru' ?
+                'Высокая влажность воздуха' :
+                'High air humidity',
+            recommendation: window.currentLanguage === 'ru' ?
+                'Обработать фунгицидом Топаз' :
+                'Treat with Topaz fungicide',
+            confidence: 85,
+            date: new Date(Date.now() - 172800000).toISOString(), // 2 дня назад
+            status: 'completed'
+        }
+    ];
+}
+
+function displayAnalysisHistory(userAnalysis) {
     // Сортируем по дате (новые сверху)
     userAnalysis.sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -748,6 +809,59 @@ function loadAnalysisHistory() {
             downloadScanReport(scanId);
         });
     });
+}
+
+// Новая функция для загрузки сервисов пользователя
+async function loadUserServices() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    
+    let userServices = [];
+    
+    // Пробуем загрузить через API
+    if (window.api && api.isAvailable) {
+        try {
+            console.log('📥 Загружаем сервисы через API...');
+            const apiServices = await api.getUserServices();
+            
+            // Преобразуем данные API в формат приложения
+            userServices = apiServices.map(service => ({
+                id: service.id,
+                userId: currentUser.id,
+                phone: service.phone,
+                address: service.local,
+                description: service.plants_description,
+                area: service.area,
+                culture: service.culture,
+                date: service.date,
+                status: service.status || 'pending',
+                createdAt: service.created_at || new Date().toISOString()
+            }));
+            
+            console.log('✅ Сервисы загружены через API:', userServices.length, 'заявок');
+            
+        } catch (apiError) {
+            console.warn('⚠️ Ошибка загрузки сервисов через API:', apiError.message);
+            // Продолжаем с localStorage
+            userServices = loadServicesFromLocalStorage(currentUser);
+        }
+    } else {
+        // Если API недоступен, загружаем из localStorage
+        userServices = loadServicesFromLocalStorage(currentUser);
+    }
+
+    // Отображаем сервисы
+    displayUserServices(userServices);
+}
+
+function loadServicesFromLocalStorage(currentUser) {
+    const data = getAllData();
+    return data.requests.filter(r => r.userId === currentUser.id);
+}
+
+function displayUserServices(services) {
+    // Можно добавить отображение сервисов на странице профиля
+    // Например, в отдельной вкладке "Мои заявки"
+    console.log('Сервисы пользователя:', services);
 }
 
 function viewScanDetails(scanId) {
@@ -849,7 +963,7 @@ function loadStatistics() {
 
     // Последняя активность
     const user = data.users.find(u => u.id === currentUser.id);
-    if (user.lastActivity) {
+    if (user && user.lastActivity) {
         const lastActivityDate = new Date(user.lastActivity);
         document.getElementById('lastActivity').textContent =
             window.getTranslation('last-activity') + ': ' +

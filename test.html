@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тест подключения</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Тестирование подключения к бэкенду</h1>
+    <div id="result">
+        <p>Проверяем API по адресу: <span id="api-url"></span></p>
+        <p>Статус: <span id="status">Проверка...</span></p>
+    </div>
+    
+    <h2>Тест localStorage</h2>
+    <button onclick="testLocalStorage()">Тест localStorage</button>
+    <div id="local-result"></div>
+    
+    <script>
+        // Замените на ваш реальный URL
+        const API_URL = 'http://<server-ip>:5000/api/articles';
+        document.getElementById('api-url').textContent = API_URL;
+        
+        // Проверка API
+        async function testApiConnection() {
+            const statusEl = document.getElementById('status');
+            
+            try {
+                console.log('Тестируем подключение к:', API_URL);
+                
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    statusEl.textContent = '✅ API доступен!';
+                    statusEl.className = 'success';
+                    console.log('API работает корректно');
+                } else {
+                    statusEl.textContent = `⚠️ API ответил с ошибкой: ${response.status}`;
+                    statusEl.className = 'error';
+                }
+            } catch (error) {
+                statusEl.textContent = `❌ Ошибка подключения: ${error.message}`;
+                statusEl.className = 'error';
+                console.error('Ошибка подключения:', error);
+            }
+        }
+        
+        // Проверка localStorage
+        function testLocalStorage() {
+            const resultEl = document.getElementById('local-result');
+            
+            try {
+                // Тест записи
+                localStorage.setItem('test_key', 'test_value');
+                
+                // Тест чтения
+                const value = localStorage.getItem('test_key');
+                
+                if (value === 'test_value') {
+                    resultEl.innerHTML = '<span class="success">✅ localStorage работает корректно</span>';
+                    console.log('localStorage работает');
+                } else {
+                    resultEl.innerHTML = '<span class="error">❌ Ошибка чтения из localStorage</span>';
+                }
+                
+                // Очистка тестовых данных
+                localStorage.removeItem('test_key');
+                
+            } catch (error) {
+                resultEl.innerHTML = `<span class="error">❌ Ошибка localStorage: ${error.message}</span>`;
+            }
+        }
+        
+        // Запускаем тест при загрузке
+        testApiConnection();
+    </script>
+</body>
+</html>

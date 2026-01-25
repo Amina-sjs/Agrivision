@@ -1,7 +1,36 @@
 // Основной JavaScript для сайта
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Инициализация всех обработчиков
+document.addEventListener('DOMContentLoaded', async function() {
+    // 1. Проверяем доступность API
+    await checkApiAvailability();
+    
+    // 2. Если API недоступен, переходим в локальный режим
+    if (!window.API_AVAILABLE) {
+        console.log('📁 API недоступен, переходим в локальный режим');
+        // Инициализируем локальные данные если их нет
+        const dataStr = localStorage.getItem('agrivision_db');
+        if (!dataStr) {
+            const initialData = {
+                users: [
+                    {
+                        id: 1,
+                        name: 'Администратор',
+                        email: 'admin@agrivision.ru',
+                        password: 'AgriVision2024!',
+                        phone: '+7 (900) 000-00-00',
+                        role: 'admin',
+                        registrationDate: new Date().toISOString()
+                    }
+                ],
+                requests: [],
+                articles: [],
+                analysis: []
+            };
+            localStorage.setItem('agrivision_db', JSON.stringify(initialData));
+        }
+    }
+    
+    // 3. Инициализируем остальные компоненты
     initMobileMenu();
     initModals();
     initTestimonialSlider();
@@ -13,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initDevelopmentLinks();
     initAuthCheckForAnalysis();
 
-    // Проверяем авторизацию при загрузке
+    // 4. Проверяем авторизацию
     checkAuth();
     updateMobileMenu();
 });
@@ -619,46 +648,84 @@ function handleLoginSubmit(e) {
     });
 }
 
-function handleRegisterSubmit(e) {
+// В функции handleRequestSubmit обновите данные для отправки:
+function handleRequestSubmit(e) {
     e.preventDefault();
 
-    const name = document.getElementById('regName').value;
-    const email = document.getElementById('regEmail').value;
-    const phone = document.getElementById('regPhone').value;
-    const password = document.getElementById('regPassword').value;
+    const area = document.getElementById('requestArea').value;
+    const address = document.getElementById('requestAddress').value;
+    const culture = document.getElementById('requestCulture').value;
+    const date = document.getElementById('requestDate').value;
+    const phone = document.getElementById('requestPhone').value;
+    const description = document.getElementById('requestDescription')?.value || '';
 
-    if (!name || !email || !password) {
-        showNotification('Пожалуйста, заполните обязательные поля', 'error');
+    // Простая валидация
+    if (!area || !address || !culture || !date || !phone) {
+        showNotification('Пожалуйста, заполните все обязательные поля', 'error');
         return;
     }
 
-    // Показываем загрузку
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Регистрация...';
-    submitBtn.disabled = true;
+    // Получаем текущего пользователя
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    
+    // Подготавливаем данные согласно схеме API
+    const requestData = {
+        phone: phone,
+        local: address, // "local" = адрес/локация
+        plants_description: description || `Культура: ${culture}, Площадь: ${area}`,
+        area: area,
+        culture: culture,
+        date: date
+    };
 
-    // Используем нашу универсальную функцию registerUser из auth.js
-    registerUser(name, email, phone, password).then(result => {
-        if (result.success) {
-            showNotification('Регистрация прошла успешно!', 'success');
-            closeModal(document.getElementById('registerModal'));
-            checkAuth();
-            updateMobileMenu();
+    // Если API доступен, отправляем через него
+    if (api.isAvailable) {
+        api.createServiceRequest(requestData)
+            .then(result => {
+                showNotification('Заявка успешно отправлена через API!', 'success');
+                closeModal(document.getElementById('requestModal'));
+                document.getElementById('requestForm').reset();
+            })
+            .catch(error => {
+                console.error('Ошибка отправки заявки через API:', error);
+                saveRequestToLocalStorage(requestData, currentUser);
+            });
+    } else {
+        // Сохраняем в localStorage
+        saveRequestToLocalStorage(requestData, currentUser);
+    }
+}
 
-            // Перезагружаем страницу для обновления состояния
-            setTimeout(() => {
-                location.reload();
-            }, 500);
-        } else {
-            showNotification(result.message, 'error');
-        }
-    }).catch(error => {
-        showNotification('Ошибка регистрации: ' + error.message, 'error');
-    }).finally(() => {
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-    });
+function saveRequestToLocalStorage(requestData, currentUser) {
+    const data = getAllData();
+    const newId = data.requests.length > 0
+        ? Math.max(...data.requests.map(r => r.id)) + 1
+        : 1;
+
+    const newRequest = {
+        id: newId,
+        userId: currentUser ? currentUser.id : null,
+        phone: requestData.phone,
+        address: requestData.local,
+        description: requestData.plants_description,
+        area: requestData.area,
+        culture: requestData.culture,
+        date: requestData.date,
+        status: 'pending', // Согласно схеме: pending, approaching, completed
+        createdAt: new Date().toISOString()
+    };
+
+    data.requests.push(newRequest);
+    saveData(data);
+
+    // Закрываем модальное окно
+    closeModal(document.getElementById('requestModal'));
+
+    // Показываем уведомление
+    showNotification('Заявка успешно отправлена! Мы свяжемся с вами в ближайшее время.', 'success');
+
+    // Очищаем форму
+    document.getElementById('requestForm').reset();
 }
 
 function handleRegisterSubmit(e) {
