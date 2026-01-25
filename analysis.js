@@ -659,3 +659,53 @@ function closeModal(modal) {
     modal.classList.remove('active');
     document.body.style.overflow = 'auto';
 }
+
+// Функция для отображения истории (отсутствовала)
+function displayHistory(history) {
+    const historyContainer = document.getElementById('historyContainer');
+    if (!historyContainer) return;
+    
+    if (history.length === 0) {
+        historyContainer.innerHTML = '<p>История анализов пуста</p>';
+        return;
+    }
+    
+    // Сортируем по дате (новые сверху)
+    history.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    let html = '';
+    
+    history.forEach(item => {
+        const isHealthy = item.visual_status === 'healthy';
+        const borderColor = isHealthy ? '#4CAF50' : '#F44336';
+        const statusIcon = isHealthy ? '✅' : '⚠️';
+        const date = item.date ? new Date(item.date) : new Date();
+        const formattedDate = date.toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        html += `
+            <div class="history-item" style="border-left: 4px solid ${borderColor}; padding: 15px; margin: 10px 0; background: white; border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span><strong>${statusIcon} ${item.status_text || 'Анализ'}</strong></span>
+                    <span style="color: #666; font-size: 0.9em;">${formattedDate}</span>
+                </div>
+                <div>
+                    <p><strong>Диагноз:</strong> ${item.diagnosis || item.diagnosis_text || 'Не указан'}</p>
+                    <p><strong>Уверенность:</strong> ${item.confidence || 'Нет данных'}</p>
+                    ${item.image_url ? `
+                        <div style="margin-top: 10px;">
+                            <img src="${item.image_url}" alt="История анализа" style="max-width: 150px; border-radius: 4px;">
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    });
+    
+    historyContainer.innerHTML = html;
+}

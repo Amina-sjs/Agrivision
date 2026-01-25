@@ -576,6 +576,8 @@ function closeModal(modal) {
 }
 
 // Обработчики форм
+// В script.js ЗАМЕНИ эти функции:
+
 function handleLoginSubmit(e) {
     e.preventDefault();
 
@@ -588,31 +590,75 @@ function handleLoginSubmit(e) {
         return;
     }
 
-    // Проверяем данные в localStorage
-    const data = getAllData();
-    const user = data.users.find(u => u.email === email && u.password === password);
+    // Показываем загрузку
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Вход...';
+    submitBtn.disabled = true;
 
-    if (user) {
-        // Сохраняем пользователя в localStorage
-        localStorage.setItem('currentUser', JSON.stringify({
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role
-        }));
+    // Используем нашу универсальную функцию loginUser из auth.js
+    loginUser(email, password).then(result => {
+        if (result.success) {
+            showNotification('Вход выполнен успешно!', 'success');
+            closeModal(document.getElementById('loginModal'));
+            checkAuth();
+            updateMobileMenu();
 
-        showNotification('Вход выполнен успешно!', 'success');
-        closeModal(document.getElementById('loginModal'));
-        checkAuth();
-        updateMobileMenu();
+            // Перезагружаем страницу для обновления состояния
+            setTimeout(() => {
+                location.reload();
+            }, 500);
+        } else {
+            showNotification(result.message, 'error');
+        }
+    }).catch(error => {
+        showNotification('Ошибка входа: ' + error.message, 'error');
+    }).finally(() => {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    });
+}
 
-        // Перезагружаем страницу для обновления состояния
-        setTimeout(() => {
-            location.reload();
-        }, 500);
-    } else {
-        showNotification('Неверный email или пароль', 'error');
+function handleRegisterSubmit(e) {
+    e.preventDefault();
+
+    const name = document.getElementById('regName').value;
+    const email = document.getElementById('regEmail').value;
+    const phone = document.getElementById('regPhone').value;
+    const password = document.getElementById('regPassword').value;
+
+    if (!name || !email || !password) {
+        showNotification('Пожалуйста, заполните обязательные поля', 'error');
+        return;
     }
+
+    // Показываем загрузку
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Регистрация...';
+    submitBtn.disabled = true;
+
+    // Используем нашу универсальную функцию registerUser из auth.js
+    registerUser(name, email, phone, password).then(result => {
+        if (result.success) {
+            showNotification('Регистрация прошла успешно!', 'success');
+            closeModal(document.getElementById('registerModal'));
+            checkAuth();
+            updateMobileMenu();
+
+            // Перезагружаем страницу для обновления состояния
+            setTimeout(() => {
+                location.reload();
+            }, 500);
+        } else {
+            showNotification(result.message, 'error');
+        }
+    }).catch(error => {
+        showNotification('Ошибка регистрации: ' + error.message, 'error');
+    }).finally(() => {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    });
 }
 
 function handleRegisterSubmit(e) {
@@ -775,6 +821,99 @@ function handleAdminLoginSubmit(e) {
         }, 1000);
     } else {
         showNotification('Неверные данные администратора', 'error');
+    }
+}
+
+// Функция для входа в админку (добавьте после handleAdminLoginSubmit)
+async function handleAdminLoginSubmit(e) {
+    e.preventDefault();
+
+    const email = document.getElementById('adminEmail').value;
+    const password = document.getElementById('adminPassword').value;
+
+    // Показываем загрузку
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Вход...';
+    submitBtn.disabled = true;
+
+    try {
+        // Пробуем войти через API
+        const response = await fetch('http://localhost:5000/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Ошибка входа');
+        }
+
+        const data = await response.json();
+        
+        // Ключевое изменение: сохраняем ОДИНАКОВЫЕ данные
+        localStorage.setItem('adminToken', data.access_token);
+        localStorage.setItem('currentUser', JSON.stringify({
+            id: data.user_id,
+            email: email,
+            role: 'admin', // Явно указываем роль admin
+            name: data.name || email.split('@')[0],
+            access_token: data.access_token // Сохраняем токен тоже
+        }));
+
+        showNotification('Вход в админ-панель выполнен успешно!', 'success');
+        closeModal(document.getElementById('adminLoginModal'));
+        
+        // Перезагружаем страницу для применения изменений
+        setTimeout(() => {
+            window.location.href = 'admin.html';
+        }, 1000);
+
+    } catch (error) {
+        // Если API недоступен, пробуем локальный вход
+        console.log('API недоступен, пробую локальный вход:', error.message);
+        
+        const localData = JSON.parse(localStorage.getItem('agrivision_db')) || {
+            users: [{
+                id: 1,
+                name: "Администратор",
+                email: "admin@agrivision.ru",
+                password: "AgriVision2024!",
+                role: "admin"
+            }]
+        };
+
+        const admin = localData.users.find(u => 
+            u.email === email && 
+            u.password === password && 
+            u.role === 'admin'
+        );
+
+        if (admin) {
+            // Сохраняем данные как для API
+            localStorage.setItem('currentUser', JSON.stringify({
+                id: admin.id,
+                name: admin.name,
+                email: admin.email,
+                role: admin.role,
+                access_token: 'demo-token-' + Date.now()
+            }));
+
+            showNotification('Вход в админ-панель выполнен успешно!', 'success');
+            closeModal(document.getElementById('adminLoginModal'));
+            
+            setTimeout(() => {
+                window.location.href = 'admin.html';
+            }, 1000);
+        } else {
+            showNotification('Неверные данные администратора', 'error');
+        }
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
     }
 }
 

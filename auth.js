@@ -1,4 +1,4 @@
-// Скрипт для авторизации пользователей
+// auth.js - Исправленная версия с поддержкой API
 
 document.addEventListener('DOMContentLoaded', function() {
     // Проверяем, авторизован ли пользователь
@@ -13,37 +13,45 @@ document.addEventListener('DOMContentLoaded', function() {
 // ==============================
 
 // Проверяем, используем ли мы localStorage или API
-let useLocalStorage = true; // Пока используем localStorage
-let currentBackend = 'local'; // 'local' или 'api'
+let useBackendAPI = false;
+let apiAvailable = false;
 
-// Проверяем доступность API
-async function checkApiAvailability() {
+// Проверяем доступность API при загрузке
+async function initApiCheck() {
     try {
-        const response = await fetch(`${API_CONFIG.BASE_URL}/health`, {
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            console.log('✅ Найден токен API, используем бэкенд');
+            useBackendAPI = true;
+            apiAvailable = true;
+            return;
+        }
+        
+        // Пробуем получить статьи (публичный endpoint)
+        const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ARTICLES}`, {
             method: 'GET',
-            timeout: 3000
+            headers: {
+                'Accept-Language': 'ru'
+            }
         });
+        
         if (response.ok) {
-            console.log('✅ API доступен, переключаемся на бэкенд');
-            useLocalStorage = false;
-            currentBackend = 'api';
-            return true;
+            console.log('✅ API доступен');
+            apiAvailable = true;
         }
     } catch (error) {
-        console.log('ℹ️ API недоступен, используем localStorage');
-        useLocalStorage = true;
-        currentBackend = 'local';
+        console.log('📁 API недоступен, используем localStorage');
+        apiAvailable = false;
     }
-    return false;
 }
 
 // Запускаем проверку при загрузке
-checkApiAvailability();
+initApiCheck();
 
-// Обновляем функцию loginUser для работы с обоими бэкендами
+// ОБНОВЛЕННАЯ ФУНКЦИЯ ВХОДА (единственная!)
 async function loginUser(email, password) {
-    // Сначала пробуем API
-    if (!useLocalStorage) {
+    // Сначала пробуем API если доступен
+    if (apiAvailable) {
         try {
             console.log('🔐 Пробуем вход через API...');
             
@@ -113,10 +121,10 @@ async function loginUser(email, password) {
     }
 }
 
-// Обновляем функцию registerUser
+// ОБНОВЛЕННАЯ ФУНКЦИЯ РЕГИСТРАЦИИ (единственная!)
 async function registerUser(name, email, phone, password) {
-    // Сначала пробуем API
-    if (!useLocalStorage) {
+    // Сначала пробуем API если доступен
+    if (apiAvailable) {
         try {
             console.log('📝 Пробуем регистрацию через API...');
             
@@ -124,8 +132,7 @@ async function registerUser(name, email, phone, password) {
                 name: name,
                 email: email,
                 phone: phone || null,
-                location: null, // Можно добавить поле location в форму
-                password: password
+                location: null
             };
             
             const result = await api.register(userData);
@@ -187,21 +194,9 @@ async function registerUser(name, email, phone, password) {
     };
 }
 
-// Добавляем функцию для проверки токена API
-function checkApiToken() {
-    const token = Storage.getToken();
-    if (token) {
-        useLocalStorage = false;
-        currentBackend = 'api';
-        return true;
-    }
-    return false;
-}
-
-// Проверяем токен при загрузке
-if (checkApiToken()) {
-    console.log('✅ Найден токен API, используем бэкенд');
-}
+// ==============================
+// СТАРЫЕ ФУНКЦИИ (оставляем без изменений)
+// ==============================
 
 function checkAuth() {
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -243,7 +238,6 @@ function updateMobileMenu() {
     }
 }
 
-// Функция показа уведомления
 function showNotification(message, type = 'success', duration = 3000) {
     const notification = document.getElementById('notification');
     if (!notification) return;
@@ -254,61 +248,6 @@ function showNotification(message, type = 'success', duration = 3000) {
     setTimeout(() => {
         notification.classList.remove('active');
     }, duration);
-}
-
-// Функция входа пользователя
-function loginUser(email, password) {
-    const data = getAllData();
-    const user = data.users.find(u => u.email === email && u.password === password);
-
-    if (user) {
-        // Сохраняем пользователя в localStorage
-        localStorage.setItem('currentUser', JSON.stringify({
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role
-        }));
-
-        checkAuth();
-        updateMobileMenu();
-        return { success: true, user: user };
-    } else {
-        return { success: false, message: 'Неверный email или пароль' };
-    }
-}
-
-// Функция регистрации пользователя
-function registerUser(name, email, phone, password) {
-    const data = getAllData();
-
-    // Проверка на существующего пользователя
-    const existingUser = data.users.find(user => user.email === email);
-    if (existingUser) {
-        return { success: false, message: "Пользователь с таким email уже существует" };
-    }
-
-    const newId = data.users.length > 0
-        ? Math.max(...data.users.map(u => u.id)) + 1
-        : 1;
-
-    const newUser = {
-        id: newId,
-        name,
-        email,
-        phone,
-        password,
-        role: 'user',
-        registrationDate: new Date().toISOString()
-    };
-
-    data.users.push(newUser);
-    saveData(data);
-
-    // Автоматический вход после регистрации
-    loginUser(email, password);
-
-    return { success: true, user: newUser };
 }
 
 // Получить все данные
