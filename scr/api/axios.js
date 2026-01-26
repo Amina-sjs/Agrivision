@@ -1,3 +1,25 @@
+
+import axios from 'axios';
+
+const api = axios.create({
+    baseURL: 'http://172.20.10.2:5000', // Твой IP из config.js
+    headers: {
+        'Content-Type': 'application/json'
+    }
+});
+
+// Автоматически подставляем токен в каждый запрос, если он есть
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+export default api;
+
+
 /**
  * AgriVision - Глобальная конфигурация API
  * Настроено на работу строго с внешним сервером.
