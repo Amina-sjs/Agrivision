@@ -4,6 +4,33 @@ let currentUser = null;
 let currentSection = 'dashboard';
 let useAPI = false;
 
+function t(key) {
+    if (window.getTranslation && typeof window.getTranslation === 'function') {
+        return window.getTranslation(key) || key;
+    }
+    return key;
+}
+
+window.updateAdminContent = function() {
+    console.log('🔄 Обновление админки на язык:', window.currentLanguage);
+    
+    // Перерисовываем текущий раздел
+    switch(currentSection) {
+        case 'dashboard': loadDashboard(); break;
+        case 'users': loadUsers(); break;
+        case 'requests': loadRequests(); break;
+        case 'articles': loadArticles(); break;
+        case 'analysis': loadAnalysis(); break;
+        case 'settings': loadSettings(); break;
+    }
+    
+    // Обновляем заголовок
+    const headerTitle = document.querySelector('.admin-header h1');
+    if (headerTitle) {
+        headerTitle.innerHTML = `<i class="fas fa-cogs"></i> ${t('admin-panel-title')}`;
+    }
+};
+
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Инициализация админ-панели');
     
@@ -114,50 +141,54 @@ function renderAdminPanel() {
         return;
     }
 
-    adminPanel.innerHTML = `
-        <div class="admin-header">
-            <h1><i class="fas fa-cogs"></i> Панель администратора AgriVision</h1>
-            <div class="admin-info">
-                <span class="api-status ${useAPI ? 'online' : 'offline'}">
-                    <i class="fas fa-circle"></i> ${useAPI ? 'API онлайн' : 'Локальный режим'}
-                </span>
-                <span class="user-info">
-                    <i class="fas fa-user-shield"></i> ${currentUser.name}
-                </span>
-            </div>
-            <div class="admin-actions">
-                <button class="admin-btn btn-secondary" id="refreshBtn">
-                    <i class="fas fa-sync-alt"></i> Обновить
-                </button>
-                <button class="admin-btn btn-danger" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i> Выйти
-                </button>
-            </div>
+adminPanel.innerHTML = `
+    <div class="admin-header">
+        <h1><i class="fas fa-cogs"></i> ${t('admin-panel-title')}</h1>
+        <div class="admin-info">
+            <span class="api-status ${useAPI ? 'online' : 'offline'}">
+                <i class="fas fa-circle"></i> ${useAPI ? t('admin-api-online') : t('admin-api-offline')}
+            </span>
+            <span class="user-info">
+                <i class="fas fa-user-shield"></i> ${currentUser.name}
+            </span>
+            <!-- Добавляем переключатель языка -->
+            <div class="language-switcher" style="margin-left: 10px; display: flex; gap: 5px;">
+                <button class="lang-btn btn-sm ${window.currentLanguage === 'ru' ? 'active' : ''}" data-lang="ru" style="padding: 5px 10px; border: 1px solid #ddd; background: ${window.currentLanguage === 'ru' ? '#2e7d32' : 'white'}; color: ${window.currentLanguage === 'ru' ? 'white' : '#333'};">🇷🇺</button>
+                <button class="lang-btn btn-sm ${window.currentLanguage === 'en' ? 'active' : ''}" data-lang="en" style="padding: 5px 10px; border: 1px solid #ddd; background: ${window.currentLanguage === 'en' ? '#2e7d32' : 'white'}; color: ${window.currentLanguage === 'en' ? 'white' : '#333'};">🇺🇸</button>
+                </div>
+                </div>
+                    <div class="admin-actions">
+            <button class="admin-btn btn-secondary" id="refreshBtn">
+                <i class="fas fa-sync-alt"></i> ${t('refresh')}
+            </button>
+            <button class="admin-btn btn-danger" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i> ${t('logout')}
+            </button>
+        </div>
         </div>
         
-        <div class="admin-content">
-            <!-- Навигация -->
-            <div class="admin-nav">
-                <button class="nav-btn active" data-section="dashboard">
-                    <i class="fas fa-tachometer-alt"></i> Дашборд
-                </button>
-                <button class="nav-btn" data-section="users">
-                    <i class="fas fa-users"></i> Пользователи
-                </button>
-                <button class="nav-btn" data-section="requests">
-                    <i class="fas fa-list-alt"></i> Заявки
-                </button>
-                <button class="nav-btn" data-section="articles">
-                    <i class="fas fa-newspaper"></i> Статьи
-                </button>
-                <button class="nav-btn" data-section="analysis">
-                    <i class="fas fa-brain"></i> Анализы
-                </button>
-                <button class="nav-btn" data-section="settings">
-                    <i class="fas fa-cog"></i> Настройки
-                </button>
-            </div>
-            
+            <div class="admin-content">
+                <!-- Навигация -->
+                <div class="admin-nav">
+        <button class="nav-btn active" data-section="dashboard">
+            <i class="fas fa-tachometer-alt"></i> ${t('dashboard')}
+        </button>
+        <button class="nav-btn" data-section="users">
+            <i class="fas fa-users"></i> ${t('users')}
+        </button>
+        <button class="nav-btn" data-section="requests">
+            <i class="fas fa-list-alt"></i> ${t('requests')}
+        </button>
+        <button class="nav-btn" data-section="articles">
+            <i class="fas fa-newspaper"></i> ${t('articles')}
+        </button>
+        <button class="nav-btn" data-section="analysis">
+            <i class="fas fa-brain"></i> ${t('analysis')}
+        </button>
+        <button class="nav-btn" data-section="settings">
+            <i class="fas fa-cog"></i> ${t('settings')}
+        </button>
+    </div>
             <!-- Контент -->
             <div id="adminContent">
                 <!-- Загружается динамически -->
@@ -251,6 +282,15 @@ function initPanelFunctions() {
             window.location.href = 'index.html';
         }
     });
+
+    document.querySelectorAll('.lang-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const lang = this.getAttribute('data-lang');
+            if (window.setLanguage) {
+                window.setLanguage(lang);
+            }
+        });
+    });
 }
 
 // ==================== ЗАГРУЗКА РАЗДЕЛОВ ====================
@@ -266,9 +306,9 @@ function loadDashboard() {
                     <i class="fas fa-users"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>Пользователи</h3>
+                    <h3>${t('users')}</h3>
                     <p class="stat-number">${stats.totalUsers}</p>
-                    <p class="stat-change">+${stats.newUsersToday} сегодня</p>
+                    <p class="stat-change">+${stats.newUsersToday} ${t('today')}</p>
                 </div>
             </div>
             
@@ -277,9 +317,9 @@ function loadDashboard() {
                     <i class="fas fa-list-alt"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>Заявки</h3>
+                    <h3>${t('requests')}</h3>
                     <p class="stat-number">${stats.totalRequests}</p>
-                    <p class="stat-change">${stats.pendingRequests} ожидают</p>
+                    <p class="stat-change">${stats.pendingRequests} ${t('pending')}</p>
                 </div>
             </div>
             
@@ -288,9 +328,9 @@ function loadDashboard() {
                     <i class="fas fa-brain"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>Анализы</h3>
+                    <h3>${t('analysis')}</h3>
                     <p class="stat-number">${stats.totalAnalysis}</p>
-                    <p class="stat-change">${stats.todayAnalysis} сегодня</p>
+                    <p class="stat-change">${stats.todayAnalysis} ${t('today')}</p>
                 </div>
             </div>
             
@@ -299,32 +339,32 @@ function loadDashboard() {
                     <i class="fas fa-newspaper"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>Статьи</h3>
+                    <h3>${t('articles')}</h3>
                     <p class="stat-number">${stats.totalArticles}</p>
-                    <p class="stat-change">${stats.articleViews} просмотров</p>
+                    <p class="stat-change">${stats.articleViews} ${t('views')}</p>
                 </div>
             </div>
         </div>
         
         <div class="dashboard-sections">
             <div class="dashboard-section">
-                <h3><i class="fas fa-history"></i> Последние действия</h3>
+                <h3><i class="fas fa-history"></i> ${t('recent-activity')}</h3>
                 <div class="table-container">
                     ${renderRecentActivity()}
                 </div>
             </div>
             
             <div class="dashboard-section">
-                <h3><i class="fas fa-chart-line"></i> Быстрые действия</h3>
+                <h3><i class="fas fa-chart-line"></i> ${t('quick-actions')}</h3>
                 <div class="quick-actions">
                     <button class="action-btn btn-primary" onclick="loadUsers()">
-                        <i class="fas fa-user-plus"></i> Добавить пользователя
+                        <i class="fas fa-user-plus"></i> ${t('add-user')}
                     </button>
                     <button class="action-btn btn-success" onclick="loadArticles()">
-                        <i class="fas fa-plus"></i> Добавить статью
+                        <i class="fas fa-plus"></i> ${t('add-article')}
                     </button>
                     <button class="action-btn btn-warning" onclick="loadRequests()">
-                        <i class="fas fa-eye"></i> Проверить заявки
+                        <i class="fas fa-eye"></i> ${t('check-requests')}
                     </button>
                 </div>
             </div>
@@ -337,14 +377,14 @@ function loadUsers() {
     
     content.innerHTML = `
         <div class="section-header">
-            <h2><i class="fas fa-users"></i> Управление пользователями</h2>
+            <h2><i class="fas fa-users"></i> ${t('manage-users')}</h2>
             <button class="btn btn-primary" id="addUserBtn">
-                <i class="fas fa-user-plus"></i> Добавить пользователя
+                <i class="fas fa-user-plus"></i> ${t('add-user')}
             </button>
         </div>
         
         <div class="search-box">
-            <input type="text" id="searchUsers" placeholder="Поиск пользователей..." class="form-control">
+            <input type="text" id="searchUsers" placeholder="${t('search-users')}" class="form-control">
             <i class="fas fa-search"></i>
         </div>
         
@@ -366,24 +406,25 @@ function loadUsers() {
     }, 100);
 }
 
+javascript
 function loadRequests() {
     const content = document.getElementById('adminContent');
     
     content.innerHTML = `
         <div class="section-header">
-            <h2><i class="fas fa-list-alt"></i> Управление заявками</h2>
+            <h2><i class="fas fa-list-alt"></i> ${t('manage-requests')}</h2>
         </div>
         
         <div class="filters">
             <div class="search-box">
-                <input type="text" id="searchRequests" placeholder="Поиск заявок..." class="form-control">
+                <input type="text" id="searchRequests" placeholder="${t('search-requests')}" class="form-control">
                 <i class="fas fa-search"></i>
             </div>
             <select id="filterStatus" class="form-control">
-                <option value="">Все статусы</option>
-                <option value="pending">Ожидают</option>
-                <option value="processing">В обработке</option>
-                <option value="completed">Завершены</option>
+                <option value="">${t('all-statuses')}</option>
+                <option value="pending">${t('waiting')}</option>
+                <option value="processing">${t('in-process')}</option>
+                <option value="completed">${t('completed')}</option>
             </select>
         </div>
         
@@ -412,14 +453,14 @@ function loadArticles() {
     
     content.innerHTML = `
         <div class="section-header">
-            <h2><i class="fas fa-newspaper"></i> Управление статьями</h2>
+            <h2><i class="fas fa-newspaper"></i> ${t('manage-articles')}</h2>
             <button class="btn btn-primary" id="addArticleBtn">
-                <i class="fas fa-plus"></i> Добавить статью
+                <i class="fas fa-plus"></i> ${t('add-article')}
             </button>
         </div>
         
         <div class="search-box">
-            <input type="text" id="searchArticles" placeholder="Поиск статей..." class="form-control">
+            <input type="text" id="searchArticles" placeholder="${t('search-articles')}" class="form-control">
             <i class="fas fa-search"></i>
         </div>
         
@@ -446,11 +487,11 @@ function loadAnalysis() {
     
     content.innerHTML = `
         <div class="section-header">
-            <h2><i class="fas fa-brain"></i> Анализы заболеваний</h2>
+            <h2><i class="fas fa-brain"></i> ${t('analysis')}</h2>
         </div>
         
         <div class="search-box">
-            <input type="text" id="searchAnalysis" placeholder="Поиск анализов..." class="form-control">
+            <input type="text" id="searchAnalysis" placeholder="${t('search-analysis')}" class="form-control">
             <i class="fas fa-search"></i>
         </div>
         
@@ -476,64 +517,64 @@ function loadSettings() {
     content.innerHTML = `
         <div class="settings-grid">
             <div class="setting-card">
-                <h3><i class="fas fa-cog"></i> Настройки системы</h3>
+                <h3><i class="fas fa-cog"></i> ${t('system-settings')}</h3>
                 
                 <div class="form-group">
-                    <label>Название сайта</label>
+                    <label>${t('site-name')}</label>
                     <input type="text" id="siteName" class="form-control" 
                            value="${adminData.settings?.siteName || 'AgriVision'}">
                 </div>
                 
                 <div class="form-group">
-                    <label>Email для связи</label>
+                    <label>${t('contact-email')}</label>
                     <input type="email" id="contactEmail" class="form-control" 
                            value="${adminData.settings?.contactEmail || 'info@agrivision.ru'}">
                 </div>
                 
                 <div class="form-group">
-                    <label>Телефон поддержки</label>
+                    <label>${t('support-phone')}</label>
                     <input type="text" id="supportPhone" class="form-control" 
                            value="${adminData.settings?.supportPhone || '+7 (800) 123-45-67'}">
                 </div>
                 
                 <button class="btn btn-primary" id="saveSettings">
-                    <i class="fas fa-save"></i> Сохранить настройки
+                    <i class="fas fa-save"></i> ${t('save-settings')}
                 </button>
             </div>
             
             <div class="setting-card">
-                <h3><i class="fas fa-database"></i> Управление данными</h3>
+                <h3><i class="fas fa-database"></i> ${t('data-management')}</h3>
                 
                 <div class="form-group">
-                    <label>Создать резервную копию</label>
+                    <label>${t('create-backup')}</label>
                     <button class="btn btn-success" id="backupBtn" style="width: 100%;">
-                        <i class="fas fa-download"></i> Экспорт данных
+                        <i class="fas fa-download"></i> ${t('export-data')}
                     </button>
                 </div>
                 
                 <div class="form-group">
-                    <label>Восстановить из backup</label>
+                    <label>${t('restore-from-backup')}</label>
                     <input type="file" id="restoreFile" class="form-control" accept=".json">
                     <button class="btn btn-warning" id="restoreBtn" style="width: 100%; margin-top: 10px;">
-                        <i class="fas fa-upload"></i> Восстановить
+                        <i class="fas fa-upload"></i> ${t('restore')}
                     </button>
                 </div>
                 
                 <div class="form-group">
-                    <label>Очистить кэш</label>
+                    <label>${t('clear-cache')}</label>
                     <button class="btn btn-danger" id="clearCacheBtn" style="width: 100%;">
-                        <i class="fas fa-trash"></i> Очистить
+                        <i class="fas fa-trash"></i> ${t('clear')}
                     </button>
                 </div>
             </div>
             
             <div class="setting-card">
-                <h3><i class="fas fa-chart-bar"></i> Статистика системы</h3>
+                <h3><i class="fas fa-chart-bar"></i> ${t('system-statistics')}</h3>
                 <div class="system-stats">
-                    <p><strong>Режим работы:</strong> ${useAPI ? 'API' : 'Локальный'}</p>
-                    <p><strong>Всего пользователей:</strong> ${adminData.users?.length || 0}</p>
-                    <p><strong>Всего заявок:</strong> ${adminData.requests?.length || 0}</p>
-                    <p><strong>Всего статей:</strong> ${adminData.articles?.length || 0}</p>
+                    <p><strong>${t('working-mode')}:</strong> ${useAPI ? 'API' : t('local')}</p>
+                    <p><strong>${t('total-users')}:</strong> ${adminData.users?.length || 0}</p>
+                    <p><strong>${t('total-requests')}:</strong> ${adminData.requests?.length || 0}</p>
+                    <p><strong>${t('total-articles')}:</strong> ${adminData.articles?.length || 0}</p>
                 </div>
             </div>
         </div>
