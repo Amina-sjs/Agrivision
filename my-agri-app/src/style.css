@@ -1962,6 +1962,8 @@ html {
     }
 }
 
+
+
 @media (max-width: 480px) {
     .header-container {
         flex-direction: row;

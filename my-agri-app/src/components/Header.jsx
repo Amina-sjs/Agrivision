@@ -1,6 +1,6 @@
 // src/components/Header.jsx
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { MemoryStorage } from '../api/axios';
 
 const translations = {
@@ -33,6 +33,7 @@ const translations = {
 };
 
 const Header = ({ lang, setLang, onOpenRegister, onOpenLogin }) => {
+    const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [user, setUser] = useState(null);
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
@@ -67,17 +68,24 @@ const Header = ({ lang, setLang, onOpenRegister, onOpenLogin }) => {
         
         // Для анализа - используем React Router
         if (sectionId === 'analysis') {
-            window.location.href = '/analysis';
+            navigate('/analysis'); 
+            setIsMenuOpen(false);
             return;
         }
         
         // Для библиотеки - показываем сообщение
         if (sectionId === 'library') {
-            alert("Библиотека находится в разработке");
+            navigate('/library'); 
+            setIsMenuOpen(false);
             return;
         }
         
         // Для остальных - скролл к якорям
+        if (window.location.pathname !== '/') {
+        // Переходим на главную и добавляем хеш в URL
+        navigate(`/#${sectionId}`);
+    } else {
+        // 3. Если мы уже на главной — просто плавно скроллим
         if (sectionId === 'home') {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
@@ -86,6 +94,7 @@ const Header = ({ lang, setLang, onOpenRegister, onOpenLogin }) => {
                 element.scrollIntoView({ behavior: 'smooth' });
             }
         }
+    }
         
         // Закрываем мобильное меню если открыто
         setIsMenuOpen(false);
@@ -129,7 +138,7 @@ const Header = ({ lang, setLang, onOpenRegister, onOpenLogin }) => {
 
                 <nav className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
                     <ul>
-                        <li><a href="#hero" onClick={(e) => handleNavClick('home', e)}>{t('home')}</a></li>
+                        <li><a href="/" onClick={(e) => handleNavClick('home', e)}>{t('home')}</a></li>
                         <li><a href="#analysis" onClick={(e) => handleNavClick('analysis', e)}>{t('analysis')}</a></li>
                         <li><a href="#library" onClick={(e) => handleNavClick('library', e)}>{t('library')}</a></li>
                         <li><a href="#request" onClick={(e) => handleNavClick('request', e)}>{t('request')}</a></li>

@@ -5,8 +5,6 @@ import api, { MemoryStorage } from '../api/axios';
 
 const Register = ({ lang, onClose }) => {
     const navigate = useNavigate();
-
-    // 1. Состояние для полей формы - ОСТАВЛЯЕМ КАК БЫЛО
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -18,7 +16,7 @@ const Register = ({ lang, onClose }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    // 2. Переводы - ОСТАВЛЯЕМ КАК БЫЛО
+   
     const texts = {
         ru: {
             title: "Регистрация",

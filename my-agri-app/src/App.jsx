@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header'; 
+// import Footer from './components/Footer'; 
 import Home from './pages/Home';
+import Library from './components/Library';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
@@ -23,19 +25,17 @@ function App() {
     <Router>
       <div className="app-wrapper" style={{ backgroundColor: '#f4f4f4', minHeight: '100vh' }}>
         <Header
-  lang={lang}
-  setLang={setLang}
-  onOpenLogin={() => {
-    console.log('STATE LOGIN TRUE');
-    setIsLoginOpen(true);
-  }}
-  onOpenRegister={() => {
-    console.log('STATE REGISTER TRUE');
-    setIsRegisterOpen(true);
-  }}
-/>
-
-
+          lang={lang}
+          setLang={setLang}
+          onOpenLogin={() => {
+            console.log('STATE LOGIN TRUE');
+            setIsLoginOpen(true);
+          }}
+          onOpenRegister={() => {
+            console.log('STATE REGISTER TRUE');
+            setIsRegisterOpen(true);
+          }}
+        />
         {/* Модальные окна показываем только если стейт true */}
         {isLoginOpen && (
           <Login lang={lang} onClose={() => setIsLoginOpen(false)} />
@@ -51,9 +51,11 @@ function App() {
             <Route path="/analysis" element={<Analysis lang={lang} />} />
             <Route path="/profile" element={<Profile lang={lang} />} />
             <Route path="/admin" element={<Admin lang={lang} />} />
+            <Route path="/library" element={<Library lang={lang} />} />
           
           </Routes>
         </main>
+          {/* <Footer lang={lang} /> */}
       </div>
     </Router>
   );

@@ -1,41 +1,49 @@
-// src/api/axios.js
 import axios from 'axios';
 
-// === ПАМЯТЬ вместо localStorage ===
+// === СОСТОЯНИЕ В ПАМЯТИ ===
 let memoryToken = null;
 let memoryUser = null;
-let memoryUserId = null; // Добавляем хранение ID
+let memoryUserId = null;
 
-// Восстановление сессии из памяти при загрузке страницы
+// === ЛОГИКА ВОССТАНОВЛЕНИЯ (как в старом коде, но из localStorage) ===
 const restoreSession = () => {
-  if (window.__agri_token) {
-    memoryToken = window.__agri_token;
+  try {
+    const savedToken = localStorage.getItem('agri_token');
+    const savedUser = localStorage.getItem('agri_user');
+    const savedId = localStorage.getItem('agri_userId');
+
+    if (savedToken) {
+      memoryToken = savedToken;
+    }
+    if (savedUser) {
+      memoryUser = JSON.parse(savedUser);
+    }
+    if (savedId) {
+      memoryUserId = savedId;
+    }
+
+    console.log('🔄 Сессия восстановлена из localStorage:', {
+      hasToken: !!memoryToken,
+      userId: memoryUserId
+    });
+  } catch (error) {
+    console.error('❌ Ошибка восстановления сессии:', error);
   }
-  if (window.__agri_user) {
-    memoryUser = window.__agri_user;
-  }
-  if (window.__agri_userId) {
-    memoryUserId = window.__agri_userId;
-  }
-  console.log('🔄 Восстановлена сессия из памяти:', {
-    hasToken: !!memoryToken,
-    user: memoryUser?.email,
-    userId: memoryUserId
-  });
 };
 
-// Вызываем при импорте
+// Вызываем при загрузке файла
 restoreSession();
 
 // Создаем экземпляр axios
 const api = axios.create({
-  baseURL: 'http://172.20.10.2:5000', // Ваш IP бэкенда
+  baseURL: 'http://172.20.10.3:5000',
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
-// Перехватчик запросов - добавляем токен из памяти
+// Перехватчик запросов (использует переменные из памяти)
 api.interceptors.request.use((config) => {
   if (memoryToken) {
     config.headers.Authorization = `Bearer ${memoryToken}`;
@@ -44,29 +52,18 @@ api.interceptors.request.use((config) => {
 });
 
 /**
- * === КОНФИГУРАЦИЯ ПО ТЗ ИЗ СКРИНШОТА ===
- * Только правильные эндпоинты!
+ * === КОНФИГУРАЦИЯ ПО ТЗ ===
  */
-const API_CONFIG = {
-  BASE_URL: 'http://172.20.10.2:5000',
-  
-  // === ТОЛЬКО ЭНДПОИНТЫ ИЗ СКРИНШОТА ===
+export const API_CONFIG = {
+  BASE_URL: 'http://172.20.10.3:5000',
   ENDPOINTS: {
-    REGISTER: '/register',          // POST - регистрация
-    LOGIN: '/login',                // POST - вход
-    USER_PROFILE: (id) => `/user/${id}`, // GET - профиль
-    UPDATE_PROFILE: (id) => `/user/${id}`, // PATCH - обновление
-    
-    // Дополнительные (если есть в вашем бэкенде)
-    LOGOUT: '/auth/logout',
-    UPLOAD_PHOTO: '/analysis/upload',
-    ANALYSIS_HISTORY: '/analysis/history',
-    CREATE_REQUEST: '/requests/create',
-    GET_REQUESTS: '/requests',
-    HEALTH: '/health'
+    REGISTER: '/register',
+    LOGIN: '/login',
+    USER_PROFILE: (id) => `/user/${id}`,
+    ANALYZE: (id) => `/user/${id}/analyze`,
+    HISTORY: (id) => `/user/${id}/history`,
+    SERVICE_REQUEST: (id) => `/user/${id}/service-request`,
   },
-  
-  // Настройки заголовков
   getHeaders: () => {
     return {
       'Content-Type': 'application/json',
@@ -77,84 +74,43 @@ const API_CONFIG = {
 };
 
 /**
- * MemoryStorage - хранилище в памяти
+ * MemoryStorage - интерфейс для работы с данными
  */
-const MemoryStorage = {
-  // Сохраняем сессию
+export const MemoryStorage = {
+  // Сохраняем сессию и в память, и в localStorage
   saveSession(token, userData) {
     memoryToken = token;
     memoryUser = userData;
-    memoryUserId = userData?.id || userData?._id;
-    
-    // Сохраняем в глобальную область для восстановления
-    window.__agri_token = token;
-    window.__agri_user = userData;
-    window.__agri_userId = memoryUserId;
-    
-    console.log('💾 Сессия сохранена в памяти:', {
-      token: token ? '✓' : '✗',
+    memoryUserId = userData?.id || userData?._id || userData?.userId;
+
+    localStorage.setItem('agri_token', token);
+    localStorage.setItem('agri_user', JSON.stringify(userData));
+    localStorage.setItem('agri_userId', memoryUserId);
+
+    console.log('💾 Сессия сохранена (Память + LocalStorage):', {
       email: userData?.email,
       userId: memoryUserId
     });
-    
+
     return userData;
   },
 
-  // Очищаем сессию
+  // Очищаем всё
   clear() {
     memoryToken = null;
     memoryUser = null;
     memoryUserId = null;
-    
-    delete window.__agri_token;
-    delete window.__agri_user;
-    delete window.__agri_userId;
-    
+    localStorage.removeItem('agri_token');
+    localStorage.removeItem('agri_user');
+    localStorage.removeItem('agri_userId');
     console.log('🧹 Сессия полностью очищена');
   },
 
-  // Геттеры
+  // Геттеры (работают с переменными в памяти — это быстро)
   getToken: () => memoryToken,
   getUser: () => memoryUser,
   getUserId: () => memoryUserId,
-  isAuthenticated: () => !!memoryToken && !!memoryUserId,
-  
-  // Получаем ID пользователя для запросов
-  getProfileEndpoint() {
-    const userId = this.getUserId();
-    if (!userId) {
-      console.error('❌ ID пользователя не найден');
-      return null;
-    }
-    return `/user/${userId}`;
-  }
+  isAuthenticated: () => !!memoryToken && !!memoryUserId
 };
 
-/**
- * Проверка доступности API
- */
-async function checkApiAvailability() {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-    const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.HEALTH}`, {
-      method: 'GET',
-      signal: controller.signal
-    });
-    
-    clearTimeout(timeoutId);
-    
-    if (response.ok) {
-      console.log('🌐 API доступен');
-      return true;
-    }
-  } catch (error) {
-    console.error('🌐 API недоступен:', error.message);
-  }
-  return false;
-}
-
-// Экспорт
-export { api, API_CONFIG, MemoryStorage, checkApiAvailability };
 export default api;
