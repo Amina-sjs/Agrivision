@@ -495,4 +495,4 @@ const Analysis = ({ lang = 'ru' }) => {
     );
 };
 
-export default Analysis; 
+export default Analysis;

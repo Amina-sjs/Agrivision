@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 import Analysis from './pages/Analysis';
+import DroneRequest from './pages/DroneRequest';
 import './style.css';
 
 function App() {
@@ -52,7 +53,7 @@ function App() {
             <Route path="/profile" element={<Profile lang={lang} />} />
             <Route path="/admin" element={<Admin lang={lang} />} />
             <Route path="/library" element={<Library lang={lang} />} />
-          
+            <Route path="/drone-request" element={<DroneRequest lang={lang} />} />
           </Routes>
         </main>
           {/* <Footer lang={lang} /> */}

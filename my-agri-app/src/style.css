@@ -1700,6 +1700,7 @@ html {
     scroll-behavior: smooth;
 }
 
+
 /* Адаптивность */
 @media (max-width: 1200px) {
     .container {

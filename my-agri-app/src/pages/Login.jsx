@@ -1,7 +1,7 @@
 // src/pages/Login.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api, { MemoryStorage } from '../api/axios';
+import api, { MemoryStorage, apiRequests } from '../api/axios';
 
 const Login = ({ lang, onClose }) => {
   const [formData, setFormData] = useState({
@@ -33,72 +33,59 @@ const Login = ({ lang, onClose }) => {
 
   const t = texts[lang] || texts.ru;
 
-  const handleSubmit = async (e) => {
+  
+const handleSubmit = async (e) => {
+    onClose();
+    navigate('/');
+    console.log(' Вход успешен!');
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
       console.log('🚀 Отправляем запрос на /login...');
-      
-      // ✅ ИСПОЛЬЗУЕМ ПРАВИЛЬНЫЙ ЭНДПОИНТ ИЗ ТЗ
-      const response = await api.post('/login', {
-        email: formData.email,
-        password: formData.password
-      });
-
+      const response = await apiRequests.login(formData);
       console.log('📥 Ответ от сервера:', response.data);
 
-      // Проверяем структуру ответа
       if (response.data && response.data.access_token) {
-        const userData = response.data.user || {
-          email: formData.email,
-          // ID может быть в разных полях
-          id: response.data.id || response.data.userId || response.data._id
+        // МАКСИМАЛЬНО ГИБКИЙ ПОИСК ID
+        // Твой сервер присылает user_id, поэтому ставим его первым!
+        const finalId = response.data.user_id || response.data.id || response.data.userId;
+        
+        // Собираем данные пользователя, которые реально есть
+        const userData = {
+          ...response.data, // Берем всё что пришло (там и name, и role)
+          email: response.data.email || formData.email,
+          id: finalId 
         };
         
-        // Сохраняем сессию в память
+        // Сохраняем (внутри MemoryStorage уже стоит логика для user_id)
         MemoryStorage.saveSession(response.data.access_token, userData);
-        
-        console.log('✅ Вход успешен!');
-        console.log('Токен сохранен:', !!MemoryStorage.getToken());
-        console.log('ID пользователя:', MemoryStorage.getUserId());
-        
-        // Закрываем модалку и редиректим
+        window.dispatchEvent(new Event('user-login'));
+        console.log('✅ Вход успешен! ID:', finalId);
         onClose();
-        navigate('/profile');
       } else {
         throw new Error('Токен не получен от сервера');
       }
       
     } catch (err) {
       console.error('❌ Ошибка входа:', err);
-      
-      // Улучшенная обработка ошибок
+      // ... твой код обработки ошибок без изменений
       if (err.response) {
-        // Ошибка от сервера
         const serverError = err.response.data;
-        console.log('Данные ошибки:', serverError);
-        
         if (err.response.status === 401) {
           setError('Неверный email или пароль');
-        } else if (err.response.status === 400) {
-          setError(serverError.message || 'Неверные данные');
         } else {
           setError(`Ошибка сервера: ${err.response.status}`);
         }
-      } else if (err.request) {
-        // Нет ответа от сервера
-        setError('Сервер не отвечает. Проверьте подключение к бэкенду.');
       } else {
-        // Другие ошибки
         setError(err.message || t.error);
       }
     } finally {
       setLoading(false);
     }
   };
-
+  
   const handleChange = (field) => (e) => {
     setFormData({
       ...formData,
