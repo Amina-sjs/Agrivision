@@ -16,18 +16,20 @@ function App() {
   const [lang, setLang] = useState(localStorage.getItem('appLang') || 'ru');
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+ 
 
   const handleLanguageChange = (newLang) => {
-    setLang(newLang);
-    localStorage.setItem('appLang', newLang);
-  };
+  setLang(newLang);
+  localStorage.setItem('appLang', newLang);
+};
+ 
 
   return (
     <Router>
       <div className="app-wrapper" style={{ backgroundColor: '#f4f4f4', minHeight: '100vh' }}>
         <Header
           lang={lang}
-          setLang={setLang}
+          setLang={handleLanguageChange}
           onOpenLogin={() => {
             console.log('STATE LOGIN TRUE');
             setIsLoginOpen(true);

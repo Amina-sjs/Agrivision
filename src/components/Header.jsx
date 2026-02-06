@@ -188,7 +188,7 @@ const Header = ({ lang, setLang, onOpenRegister, onOpenLogin }) => {
                     </div>
 
                     {/* 2. КОЛОКОЛЬЧИК УВЕДОМЛЕНИЙ */}
-                    <div className="notifications-wrapper" style={{ position: 'relative' }}>
+                    {/* <div className="notifications-wrapper" style={{ position: 'relative' }}>
                         <button 
                             className="notifications-btn"
                             onClick={() => setShowNotifications(!showNotifications)}
@@ -258,7 +258,7 @@ const Header = ({ lang, setLang, onOpenRegister, onOpenLogin }) => {
                                 </div>
                             </div>
                         )}
-                    </div>
+                    </div> */}
 
                     {/* 3. ПРОФИЛЬ ИЛИ КНОПКИ ВХОДА */}
                     {!user ? (
@@ -268,7 +268,7 @@ const Header = ({ lang, setLang, onOpenRegister, onOpenLogin }) => {
                                 onClick={onOpenLogin}
                                 style={{
                                     padding: '8px 16px',
-                                    border: '1px solid #4CAF50',
+                                    border: '1px solid #2d7a2f',
                                     background: 'transparent',
                                     color: '#4CAF50',
                                     borderRadius: '8px',
@@ -284,7 +284,7 @@ const Header = ({ lang, setLang, onOpenRegister, onOpenLogin }) => {
                                 style={{
                                     padding: '8px 16px',
                                     border: 'none',
-                                    background: '#4CAF50',
+                                    background: '#368c39',
                                     color: 'white',
                                     borderRadius: '8px',
                                     cursor: 'pointer',
@@ -352,17 +352,17 @@ const Header = ({ lang, setLang, onOpenRegister, onOpenLogin }) => {
                                         style={dropdownLinkStyle} 
                                         onClick={() => setShowProfileDropdown(false)}
                                     >
-                                        <span style={{ marginRight: '12px' }}>👤</span> {t('profile')}
+                                        <span style={{ marginRight: '9px' }}></span> {t('profile')}
                                     </Link>
                                     
-                                    <Link 
+                                    {/* <Link 
                                         to="/stats" 
                                         className="dropdown-item" 
                                         style={dropdownLinkStyle} 
                                         onClick={() => setShowProfileDropdown(false)}
                                     >
                                         <span style={{ marginRight: '12px' }}>📊</span> {t('stats')}
-                                    </Link>
+                                    </Link> */}
 
                                     <div style={{ height: '1px', background: '#eee', margin: '4px 0' }}></div>
 
@@ -378,7 +378,7 @@ const Header = ({ lang, setLang, onOpenRegister, onOpenLogin }) => {
                                             color: '#dc3545' 
                                         }}
                                     >
-                                        <span style={{ marginRight: '12px' }}>↪️</span> {t('logout')}
+                                        <span style={{ marginRight: '9px' }}></span> {t('logout')}
                                     </button>
                                 </div>
                             )}
@@ -415,7 +415,7 @@ const Header = ({ lang, setLang, onOpenRegister, onOpenLogin }) => {
                     position: absolute;
                     width: 0;
                     height: 2px;
-                    background: #4CAF50;
+                    
                     left: 0;
                     bottom: 0;
                     transition: width 0.3s;

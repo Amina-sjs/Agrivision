@@ -237,7 +237,7 @@ const Profile = ({ lang }) => {
             </div>
 
             {/* Статистика */}
-            <div className="profile-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+            {/* <div className="profile-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '30px' }}>
                 <div className="stat-card" style={{ background: 'white', borderRadius: '12px', padding: '25px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', textAlign: 'center' }}>
                     <div style={{ fontSize: '36px', color: '#4CAF50', marginBottom: '10px' }}>📊</div>
                     <h3 style={{ marginBottom: '10px', fontSize: '16px', color: '#666' }}>{t.stats.analyses}</h3>
@@ -257,7 +257,7 @@ const Profile = ({ lang }) => {
                         {user?.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU') : 'Неизвестно'}
                     </p>
                 </div>
-            </div>
+            </div> */}
 
             {/* БЕЗОПАСНЫЙ БЛОК ID (ВНУТРИ RETURN) */}
             <div style={{ marginTop: '30px', fontSize: '14px', color: '#666', textAlign: 'center', padding: '20px', background: '#f9f9f9', borderRadius: '8px' }}>

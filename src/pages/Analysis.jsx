@@ -28,14 +28,14 @@ const Analysis = ({ lang = 'ru' }) => {
 
     const texts = {
         ru: {
-            title: "Анализируйте растения с помощью AI",
+            title1: "Как работает AI-анализ",
             subtitle: "Загрузите фото или видео, и получите точный отчёт о состоянии ваших культур.",
             selectFile: "Выбрать изображение",
-            dragDrop: "Перетащите фото или нажмите для загрузки",
-            fileTypes: "Поддерживаемые форматы: JPG, PNG, WEBP (до 10MB)",
+            dragDrop: "Перетащите файл сюда",
+            fileTypes: "Поддерживаемые форматы: JPG, PNG, GIF, WEBP, MP4, AVI, MOV (до 10MB)",
             uploadArea: "Загрузка образца",
             processing: "Анализируем...",
-            processingTitle: "Нейросеть изучает структуру листа",
+            processingTitle: "Идет анализ...",
             result: "Результат диагностики",
             newAnalysis: "Новый анализ",
             saveResult: "В избранное",
@@ -44,57 +44,52 @@ const Analysis = ({ lang = 'ru' }) => {
             noHistory: "Вы еще не проводили анализ",
             loginRequired: "Требуется вход",
             authNotification: "Пожалуйста, войдите в систему для доступа к анализу",
-            title: "Как работает AI-анализ",
+            title: "Анализируйте растения с помощью AI",
+        
             steps: [
-        {
-          id: 1,
-          icon: (
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 16V4M12 4L8 8M12 4L16 8M4 20H20" stroke="#2D6A2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          ),
-          name: "Загрузка",
-          desc: "Загрузите фото или видео растения"
-        },
-        {
-          id: 2,
-          icon: (
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9.5 15C8.5 15 7.5 14.5 7 13.5C6.5 12.5 6.5 11.5 7 10.5C6 10 5.5 9 5.5 8C5.5 6.5 6.5 5.5 8 5.5C8.5 4.5 9.5 4 10.5 4C11.5 4 12.5 4.5 13 5.5C13.5 4.5 14.5 4 15.5 4C16.5 4 17.5 4.5 18 5.5C19.5 5.5 20.5 6.5 20.5 8C20.5 9 20 10 19 10.5C19.5 11.5 19.5 12.5 19 13.5C18.5 14.5 17.5 15 16.5 15" stroke="#2D6A2E" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M12 15V20" stroke="#2D6A2E" strokeWidth="2"/>
-            </svg>
-          ),
-          name: "Анализ ИИ",
-          desc: "Нейросеть анализирует изображение"
-        },
-        {
-          id: 3,
-          icon: (
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 20H20M4 16H14M4 12H18M4 8H12" stroke="#2D6A2E" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          ),
-          name: "Обработка",
-          desc: "Сравнение с базой данных болезней"
-        },
-        {
-          id: 4,
-          icon: (
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="#2D6A2E" strokeWidth="2"/>
-              <path d="M14 2V8H20" stroke="#2D6A2E" strokeWidth="2"/>
-              <path d="M8 13H16M8 17H12" stroke="#2D6A2E" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          ),
-          name: "Отчет",
-          desc: "Полный отчет с рекомендациями"
-        }
-      ],
-            steps: [
-                { t: "Загрузка", d: "Сделайте четкое фото листа" },
-                { t: "Обработка", d: "AI ищет признаки патогенов" },
-                { t: "Вердикт", d: "Получите план лечения" }
-            ],
+            {
+                id: 1,
+                t: "Загрузка",
+                d: "Загрузите фото или видео растения",
+                icon: (
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 16V4M12 4L8 8M12 4L16 8M4 20H20" stroke="#2D6A2E" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                )
+            },
+            {
+                id: 2,
+                t: "Анализ ИИ",
+                d: "Нейросеть анализирует изображение",
+                icon: (
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9.5 15.5C8 15.5 6.5 14.5 6 13C5 12.5 4.5 11.5 4.5 10.5C4.5 9 5.5 8 7 8C7 6 8.5 4.5 10.5 4.5C11.5 4.5 12.5 5 13 6C13.5 5 14.5 4.5 15.5 4.5C17.5 4.5 19 6 19 8C20.5 8 21.5 9 21.5 10.5C21.5 11.5 21 12.5 20 13C19.5 14.5 18 15.5 16.5 15.5" stroke="#2D6A2E" strokeWidth="1.8" strokeLinecap="round"/>
+                        <path d="M12 15.5V18M10 20H14" stroke="#2D6A2E" strokeWidth="1.8" strokeLinecap="round"/>
+                    </svg>
+                )
+            },
+            {
+                id: 3,
+                t: "Обработка",
+                d: "Сравнение с базой данных болезней",
+                icon: (
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 20H20M7 20v-5M12 20V8M17 20v-8" stroke="#2D6A2E" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                )
+            },
+            {
+                id: 4,
+                t: "Отчет",
+                d: "Полный отчет с рекомендациями",
+                icon: (
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="#2D6A2E" strokeWidth="1.8" strokeLinejoin="round"/>
+                        <path d="M14 2v6h6M8 13h8M8 17h5" stroke="#2D6A2E" strokeWidth="1.8" strokeLinecap="round"/>
+                    </svg>
+                )
+            }
+        ],
             stats: {
                 diagnosis: "Обнаружено", cause: "Описание", recommendation: "Меры борьбы",
                 confidence: "Точность", imageDetails: "Свойства фото", plantType: "Культура"
@@ -106,11 +101,11 @@ const Analysis = ({ lang = 'ru' }) => {
             }
         },
         en: {
-            title: "Analyze plants with AI",
+            title1: "How AI Analysis Works",
             subtitle: "Upload a photo or video and get an accurate report on the condition of your crops.",
             selectFile: "Select Image",
             dragDrop: "Drag & drop or click to upload",
-            fileTypes: "Supported: JPG, PNG, WEBP (max 10MB)",
+            fileTypes: "Supported: JPG, PNG, GIF, WEBP, MP4, AVI, MOV (max 10MB)",
             uploadArea: "Upload Sample",
             processing: "Analyzing...",
             processingTitle: "AI is studying the leaf structure",
@@ -122,27 +117,61 @@ const Analysis = ({ lang = 'ru' }) => {
             noHistory: "No history yet",
             loginRequired: "Login Required",
             authNotification: "Please login to access the analysis features",
-            title: "How AI Analysis Works",
+            title: "Analyze plants with AI",
             steps: [
-        { id: 1, name: "Upload", desc: "Upload a photo or video of the plant", icon: "..." },
-        { id: 2, name: "AI Analysis", desc: "Neural network analyzes the image", icon: "..." },
-        { id: 3, name: "Processing", desc: "Comparison with disease database", icon: "..." },
-        { id: 4, name: "Report", desc: "Full report with recommendations", icon: "..." }
-      ],
-            steps: [
-                { t: "Upload", d: "Take a clear photo of a leaf" },
-                { t: "Analyze", d: "AI detects potential pathogens" },
-                { t: "Result", d: "Get a treatment plan" }
-            ],
-            stats: {
-                diagnosis: "Diagnosis", cause: "Description", recommendation: "Treatment",
-                confidence: "Confidence", imageDetails: "Image Info", plantType: "Plant Type"
-            },
-            errors: {
-                noFile: "No file selected", fileType: "Invalid image format",
-                fileSize: "File is too large", noAuth: "Auth required",
-                uploadError: "Upload error", analysisError: "Analysis error"
-            }
+        {
+            id: 1,
+            t: "Upload", // Было name
+            d: "Upload a photo or video of the plant", // Было desc
+            icon: (
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 16V4M12 4L8 8M12 4L16 8M4 20H20" stroke="#2D6A2E" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            )
+        },
+        {
+            id: 2,
+            t: "AI Analysis",
+            d: "Neural network analyzes the image",
+            icon: (
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9.5 15.5C8 15.5 6.5 14.5 6 13C5 12.5 4.5 11.5 4.5 10.5C4.5 9 5.5 8 7 8C7 6 8.5 4.5 10.5 4.5C11.5 4.5 12.5 5 13 6C13.5 5 14.5 4.5 15.5 4.5C17.5 4.5 19 6 19 8C20.5 8 21.5 9 21.5 10.5C21.5 11.5 21 12.5 20 13C19.5 14.5 18 15.5 16.5 15.5" stroke="#2D6A2E" strokeWidth="1.8" strokeLinecap="round"/>
+                    <path d="M12 15.5V18M10 20H14" stroke="#2D6A2E" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+            )
+        },
+        {
+            id: 3,
+            t: "Processing",
+            d: "Comparison with disease database",
+            icon: (
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 20H20M7 20v-5M12 20V8M17 20v-8" stroke="#2D6A2E" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            )
+        },
+        {
+            id: 4,
+            t: "Report",
+            d: "Full report with recommendations",
+            icon: (
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="#2D6A2E" strokeWidth="1.8" strokeLinejoin="round"/>
+                    <path d="M14 2v6h6M8 13h8M8 17h5" stroke="#2D6A2E" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+            )
+        }
+    ],
+    stats: { // Не забудьте добавить этот блок, иначе результат анализа на англ. упадет с ошибкой
+        diagnosis: "Detected", cause: "Description", recommendation: "Measures",
+        confidence: "Confidence", imageDetails: "Image Info", plantType: "Crop"
+    },
+    errors: {
+        noFile: "No file selected", fileType: "Invalid format",
+        fileSize: "File too large", noAuth: "Auth required",
+        uploadError: "Connection error", analysisError: "Processing error"
+    }
+           
         }
     };
 
@@ -158,6 +187,8 @@ const Analysis = ({ lang = 'ru' }) => {
             setCurrentUser(null);
             setShowAuthNotification(true);
         }
+
+        
         return () => { if (filePreview) URL.revokeObjectURL(filePreview); };
     }, [lang]);
 
@@ -298,16 +329,16 @@ const Analysis = ({ lang = 'ru' }) => {
             padding: '120px 20px 60px',
             fontFamily: '"Inter", sans-serif'
         }}>
-            <div style={{ maxWidth: '850px', margin: '0 auto' }}>
+            <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
                 
                 {/* Header Section */}
                 <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-                    <h1 style={{ fontSize: '36px', color: '#1A2E1A', marginBottom: '12px', fontWeight: '800' }}>{t.title}</h1>
+                    <h1 style={{ fontSize: '40px', color: '#1b5e20', marginBottom: '12px', fontWeight: '800' }}>{t.title}</h1>
                     <p style={{ color: '#667A66', fontSize: '18px' }}>{t.subtitle}</p>
                 </div>
 
                 {/* User Profile Mini */}
-                {currentUser && (
+                {/* {currentUser && (
                     <div style={{ 
                         display: 'flex', alignItems: 'center', gap: '15px', 
                         background: '#fff', padding: '12px 20px', borderRadius: '16px',
@@ -325,7 +356,7 @@ const Analysis = ({ lang = 'ru' }) => {
                             <div style={{ fontSize: '12px', color: '#888' }}>ID: {MemoryStorage.getUserId()}</div>
                         </div>
                     </div>
-                )}
+                )} */}
 
                 {/* Main Content Area */}
                 <div style={styles.card}>
@@ -333,7 +364,7 @@ const Analysis = ({ lang = 'ru' }) => {
                         <div className="upload-container">
                             {showAuthNotification && (
                                 <div style={{ background: '#FFF4E5', color: '#663C00', padding: '15px', borderRadius: '12px', marginBottom: '20px', fontSize: '14px' }}>
-                                    🔒 {t.authNotification}
+                                     {t.authNotification}
                                 </div>
                             )}
                             <div 
@@ -341,9 +372,9 @@ const Analysis = ({ lang = 'ru' }) => {
                                 onDragOver={handleDragOver}
                                 onDrop={handleDrop}
                                 style={{
-                                    border: '2px dashed #D1DED1',
+                                    border: '2px dashed #2D3A2D',
                                     borderRadius: '20px',
-                                    padding: '60px 40px',
+                                    padding: '80px 50px',
                                     cursor: currentUser ? 'pointer' : 'not-allowed',
                                     background: '#FBFCFB',
                                     transition: 'border 0.3s'
@@ -410,9 +441,9 @@ const Analysis = ({ lang = 'ru' }) => {
                             </div>
 
                             <div style={{ display: 'grid', gap: '20px', padding: '20px', background: '#fff', border: '1px solid #EEE', borderRadius: '20px' }}>
-                                <div><strong>🌿 {t.stats.cause}:</strong> <p style={{ color: '#555', marginTop: '5px' }}>{analysisResult.symptom_description}</p></div>
+                                <div><strong> {t.stats.cause}:</strong> <p style={{ color: '#555', marginTop: '5px' }}>{analysisResult.symptom_description}</p></div>
                                 <div style={{ borderTop: '1px solid #EEE', paddingTop: '15px' }}>
-                                    <strong>💊 {t.stats.recommendation}:</strong> <p style={{ color: '#555', marginTop: '5px' }}>{analysisResult.recommendation}</p>
+                                    <strong> {t.stats.recommendation}:</strong> <p style={{ color: '#555', marginTop: '5px' }}>{analysisResult.recommendation}</p>
                                 </div>
                             </div>
 
@@ -426,26 +457,64 @@ const Analysis = ({ lang = 'ru' }) => {
 
                 {/* Step Cards Section */}
                 <div style={{ 
-                    display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginTop: '40px' 
-                }}>
-                    {t.steps.map((step, i) => (
-                        <div key={i} style={{ 
-                            background: 'white', padding: '20px', borderRadius: '20px', 
-                            border: '1px solid #EDF2ED', textAlign: 'center'
-                        }}>
-                            <div style={{ 
-                                width: '32px', height: '32px', background: '#E8F5E9', color: '#4CAF50',
-                                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                margin: '0 auto 12px', fontWeight: 'bold', fontSize: '14px'
-                            }}>{i + 1}</div>
-                            <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '4px' }}>{step.t}</div>
-                            <div style={{ fontSize: '12px', color: '#888' }}>{step.d}</div>
-                        </div>
-                    ))}
-                </div>
+    display: 'grid', 
+    gridTemplateColumns: 'repeat(4, 1fr)', // 1fr делает колонки одинаковыми и широкими
+    gap: '24px', 
+    marginTop: '40px', 
+    width: '100%' 
+}}>
+    {t.steps.map((step, i) => (
+        <div key={i} style={{ 
+            background: 'white', 
+            padding: '40px 20px', // Увеличили верхний/нижний отступ для высоты
+            borderRadius: '25px', 
+            border: '1px solid #E8EDF2', 
+            // Центрирование содержимого карточки:
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
+        }}>
+            {/* Контейнер для SVG */}
+            <div style={{ 
+                marginBottom: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '64px',
+                height: '64px',
+                background: '#e8ede8',
+                borderRadius: '18px',
+                flexShrink: 0 // Чтобы иконку не сжимало
+            }}>
+                {step.icon}
+            </div>
+
+            <div style={{ 
+                fontWeight: '700', 
+                fontSize: '16px', // Чуть увеличил для читабельности
+                marginBottom: '10px',
+                color: '#1A2E1A' 
+            }}>
+                {step.t}
+            </div>
+            
+            <div style={{ 
+                fontSize: '13px', 
+                color: '#7A8C7A',
+                lineHeight: '1.4',
+                maxWidth: '200px' // Ограничиваем ширину текста, чтобы он не расплывался
+            }}>
+                {step.d}
+            </div>
+        </div>
+    ))}
+</div>
 
                 {/* History Section */}
-                {currentUser && (
+                {/* {currentUser && (
                     <div style={{ marginTop: '60px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                             <h3 style={{ margin: 0 }}>{t.history}</h3>
@@ -478,13 +547,13 @@ const Analysis = ({ lang = 'ru' }) => {
                                 )}
                             </div>
                         )}
-                    </div>
-                )}
+                    </div> */}
+                {/* )} */}
 
                 {/* Debug Info */}
-                <div style={{ marginTop: '60px', opacity: 0.4, fontSize: '10px', textAlign: 'center' }}>
+                {/* <div style={{ marginTop: '60px', opacity: 0.4, fontSize: '10px', textAlign: 'center' }}>
                     Endpoints: POST /user/{MemoryStorage.getUserId()}/analyze • GET /user/{MemoryStorage.getUserId()}/history
-                </div>
+                </div> */}
             </div>
 
             <style>{`

@@ -630,7 +630,7 @@ const DroneRequest = ({ lang = 'ru' }) => {
                 </div>
                 
                 {/* История заявок */}
-                {currentUser && (
+                {/* {currentUser && (
                     <div style={{
                         width: '100%',
                         maxWidth: '600px',
@@ -782,7 +782,7 @@ const DroneRequest = ({ lang = 'ru' }) => {
                             </div>
                         )}
                     </div>
-                )}
+                )} */}
             </div>
             
             <style>{`

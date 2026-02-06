@@ -536,7 +536,7 @@ nav a.active::after {
     align-items: center;
     justify-content: center;
     z-index: 9999; /* Чтобы было поверх Хедера */
-    /* УБРАЛИ visibility: hidden и opacity: 0 */
+    
 }
 
 .modal-overlay.active {

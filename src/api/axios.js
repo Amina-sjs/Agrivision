@@ -22,12 +22,12 @@ const restoreSession = () => {
       memoryUserId = savedId;
     }
 
-    console.log('🔄 Сессия восстановлена из localStorage:', {
+    console.log(' Сессия восстановлена из localStorage:', {
       hasToken: !!memoryToken,
       userId: memoryUserId
     });
   } catch (error) {
-    console.error('❌ Ошибка восстановления сессии:', error);
+    console.error(' Ошибка восстановления сессии:', error);
   }
 };
 
@@ -35,7 +35,7 @@ const restoreSession = () => {
 restoreSession();
 
 export const API_CONFIG = {
-  BASE_URL: 'http://192.168.1.108:5000/api',
+  BASE_URL: 'http://192.168.0.102:5000/api',
   ENDPOINTS: {
     // 1. Авторизация
     REGISTER: '/register',
@@ -57,7 +57,7 @@ export const API_CONFIG = {
 
 // Создаем экземпляр axios
 const api = axios.create({
-  baseURL: 'http://192.168.1.108:5000/api',
+  baseURL: 'http://192.168.0.102:5000/api',
   timeout: 15000,
 });
 
@@ -135,13 +135,13 @@ export const apiRequests = {
   register: (data) => api.post(API_CONFIG.ENDPOINTS.REGISTER, data),
   login: (data) => api.post(API_CONFIG.ENDPOINTS.LOGIN, data),
   // Анализ фото (Блок 2) - передавай чистый File из input
-  // analyzeLeaf: (file, lang = 'ru') => {
-  //   const fd = new FormData();
-  //   fd.append('file', file);
-  //   return api.post(API_CONFIG.ENDPOINTS.ANALYZE(memoryUserId), fd, {
-  //     headers: { 'Accept-Language': lang }
-  //   });
-  // }
+  analyzeLeaf: (file, lang = 'ru') => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return api.post(API_CONFIG.ENDPOINTS.ANALYZE(memoryUserId), fd, {
+      headers: { 'Accept-Language': lang }
+    });
+  }
 };
 
 export default api;
