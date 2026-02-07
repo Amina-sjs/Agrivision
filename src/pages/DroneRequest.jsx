@@ -118,7 +118,7 @@ const DroneRequest = ({ lang = 'ru' }) => {
         if (!userId) return;
         
         try {
-            const response = await api.get(`q/user/${userId}/services`);
+            const response = await api.get(`/user/${userId}/services`);
             if (response.data) {
                 setUserRequests(response.data);
             }

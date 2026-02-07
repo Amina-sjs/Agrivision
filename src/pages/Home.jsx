@@ -1282,7 +1282,7 @@ const renderFooter = () => {
             {renderDevelopmentModal()}
             {renderRequestModal()} */}
 
-            <div 
+            {/* <div 
                 className="admin-access-container"
                 onClick={() => setShowAdminModal(true)}
                 onMouseEnter={() => setHoveredIndex('adminBtn')}
@@ -1303,7 +1303,7 @@ const renderFooter = () => {
                 }}>
                     {t.adminPortal.sticky}
                 </span>
-            </div>
+            </div> */}
 
             {/* Рендер модалки */}
             {showAdminModal && renderAdminModal()}

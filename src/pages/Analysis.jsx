@@ -188,7 +188,7 @@ const Analysis = ({ lang = 'ru' }) => {
             setShowAuthNotification(true);
         }
 
-        
+         console.log('Language changed to:', lang);        
         return () => { if (filePreview) URL.revokeObjectURL(filePreview); };
     }, [lang]);
 

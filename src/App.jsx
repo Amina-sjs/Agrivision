@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header'; 
-// import Footer from './components/Footer'; 
 import Home from './pages/Home';
 import Library from './components/Library';
 import Register from './pages/Register';
@@ -17,8 +16,10 @@ function App() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
  
-
+  
+  
   const handleLanguageChange = (newLang) => {
+ 
   setLang(newLang);
   localStorage.setItem('appLang', newLang);
 };
